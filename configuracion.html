@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración de Motor - Trevijano VN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { background: #1a1a1a; color: white; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .config-box { background: #2a2a2a; padding: 50px; border-radius: 10px; border: 2px solid #c5a059; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .switch { position: relative; display: inline-block; width: 60px; height: 34px; margin: 20px 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #8B0000; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #4CAF50; }
+        input:checked + .slider:before { transform: translateX(26px); }
+        .btn { display: inline-block; padding: 15px 30px; background: #c5a059; color: black; text-decoration: none; font-weight: bold; border-radius: 5px; margin-top: 20px; transition: 0.2s; letter-spacing: 2px; }
+        .btn:hover { background: white; }
+    </style>
+</head>
+<body>
+    <div class="config-box">
+        <h1 style="color: #c5a059; letter-spacing: 2px; margin-top: 0;">MODO PRESENTACIÓN</h1>
+        <p style="opacity: 0.8; max-width: 400px; margin: 0 auto 20px;">
+            Al activar este modo, el motor saltará las preguntas metodológicas y las interacciones de feedback, dirigiéndose automáticamente a la tarjeta de síntesis y ocultando los rótulos emergentes.
+        </p>
+        
+        <label class="switch">
+            <input type="checkbox" id="presToggle">
+            <span class="slider"></span>
+        </label>
+        
+        <div><h2 id="statusText" style="letter-spacing: 1px;">MODO JUEGO ACTIVADO</h2></div>
+        
+        <a href="Trevijano.html" class="btn">INICIAR MOTOR</a>
+    </div>
+
+    <script>
+        const toggle = document.getElementById('presToggle');
+        const statusText = document.getElementById('statusText');
+
+        if (localStorage.getItem('presentationMode') === 'true') {
+            toggle.checked = true;
+            statusText.innerText = "MODO PRESENTACIÓN ACTIVADO";
+            statusText.style.color = "#4CAF50";
+        } else {
+            statusText.style.color = "#8B0000";
+        }
+
+        toggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                localStorage.setItem('presentationMode', 'true');
+                statusText.innerText = "MODO PRESENTACIÓN ACTIVADO";
+                statusText.style.color = "#4CAF50";
+            } else {
+                localStorage.setItem('presentationMode', 'false');
+                statusText.innerText = "MODO JUEGO ACTIVADO";
+                statusText.style.color = "#8B0000";
+            }
+        });
+    </script>
+</body>
+</html>
