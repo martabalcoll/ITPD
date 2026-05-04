@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Introducción a la Teoría Pura de la Democracia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Inter:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script src="TrevijanoData.js"></script>
+    <style>
+        :root {
+            --paper-color: #fdfaf0;
+            --pencil-gray: #2b2b2b;
+            --trevi-red: #8B0000;
+            --trevi-gold: #c5a059;
+            --opp-color: #2c3e50;
+            --glass-bg: rgba(20, 20, 20, 0.95);
+            --font-main: 'Inter', sans-serif;
+            --font-paper: 'Special Elite', cursive;
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: var(--font-main);
+            color: white;
+            background: black;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        #game-stage {
+            position: absolute;
+            inset: 0;
+            background: url('https://www.transparenttextures.com/patterns/wood-pattern.png'), #d4b58e;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #app-viewport {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: black;
+        }
+
+        /* --- Portrait Mode (Landscape Lock) --- */
+        @media (orientation: portrait) {
+            body {
+                width: 100vw;
+                height: 100vh;
+                overflow: hidden;
+            }
+
+            #app-viewport {
+                position: absolute;
+                top: 0;
+                left: 100vw;
+                width: 100vh !important;
+                height: 100vw !important;
+                transform-origin: top left;
+                transform: rotate(90deg);
+            }
+        }
+
+        /* --- Responsive Fluid Adjustments --- */
+        #paper-object {
+            position: relative;
+            width: 90%;
+            max-width: 550px;
+            min-height: 100px;
+            height: auto;
+            background: var(--paper-color);
+            padding: 50px 50px 70px 50px;
+            box-shadow: 10px 10px 40px rgba(0, 0, 0, 0.4);
+            color: var(--pencil-gray);
+            font-family: var(--font-paper);
+            font-size: 1.3rem;
+            line-height: 1.6;
+            z-index: 10;
+            transform: rotate(-1deg) translateY(0);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), filter 0.2s ease-out, opacity 0.2s ease-out, box-shadow 0.2s ease-out;
+            cursor: pointer;
+        }
+
+        #paper-object.wider {
+            max-width: 850px;
+        }
+
+        @media (max-height: 600px) {
+            #paper-object {
+                padding: 30px 30px 50px;
+                font-size: 1.1rem;
+                max-width: 500px;
+            }
+
+            #paper-object.wider {
+                max-width: 700px;
+            }
+
+            .bubble {
+                padding: 20px;
+                font-size: 1.2rem;
+                min-height: 120px;
+                margin-bottom: 30px;
+            }
+
+            .bubble-name {
+                font-size: 1.1rem;
+                top: -20px;
+            }
+
+            .char-sprite {
+                width: 30%;
+            }
+
+            .title-main {
+                font-size: 2.5rem;
+            }
+        }
+
+        #focus-dim {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(2px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease-out;
+            z-index: 15;
+        }
+
+        .dimmed #focus-dim,
+        .presenting-mode #focus-dim {
+            opacity: 1;
+        }
+
+        .presenting-mode #focus-dim {
+            z-index: 90;
+        }
+
+        #paper-text {
+            font-size: 1.3rem;
+            line-height: 1.6;
+        }
+
+        #game-stage.can-toggle:not(.paper-focus) #paper-object:hover {
+            box-shadow: 10px 10px 50px rgba(0, 150, 255, 0.6);
+            filter: brightness(1.1);
+        }
+
+        #paper-object::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .paper-header {
+            text-align: right;
+            font-size: 0.9rem;
+            color: #888;
+            font-family: var(--font-main);
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .paper-btn-start {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--trevi-red);
+            color: white;
+            border: 2px solid var(--trevi-gold);
+            padding: 15px 30px;
+            font-family: var(--font-main);
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: pulseBtn 2s infinite;
+            z-index: 20;
+            letter-spacing: 2px;
+        }
+
+        @keyframes pulseBtn {
+
+            0%,
+            100% {
+                transform: translateX(-50%) scale(1);
+            }
+
+            50% {
+                transform: translateX(-50%) scale(1.05);
+            }
+        }
+
+        /* --- Toggle QoL: Sincronización a 0.2s sin delays --- */
+        .paper-focus #paper-object {
+            z-index: 1000;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            filter: none !important;
+            opacity: 1 !important;
+        }
+
+        .paper-focus #focus-dim {
+            z-index: 999;
+            opacity: 0.8;
+        }
+
+        .paper-focus #conversation-layer {
+            filter: blur(5px);
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        #conversation-layer {
+            transition: filter 0.2s ease-out, opacity 0.2s ease-out;
+        }
+
+        .paper-focus #choice-modal-bg {
+            opacity: 0 !important;
+        }
+
+        .paper-focus #choice-modal-content {
+            opacity: 0 !important;
+        }
+
+        /* Capa de Conversación */
+        #conversation-layer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 66%;
+            display: flex;
+            align-items: flex-end;
+            padding: 0 50px 0;
+            box-sizing: border-box;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        /* Placeholders */
+        .char-sprite {
+            width: 450px;
+            max-width: 35%;
+            height: 100%;
+            position: relative;
+            flex-shrink: 0;
+            cursor: pointer;
+            pointer-events: none;
+            opacity: 0;
+            filter: blur(5px) grayscale(50%);
+            transform: translateY(20px);
+            transition: filter 0.3s ease-out, opacity 0.3s ease-out, transform 0.3s ease-out;
+        }
+
+        .char-sprite.active {
+            pointer-events: auto;
+            opacity: 1;
+            filter: none;
+            transform: translateY(0);
+        }
+
+        .char-sprite img,
+        .char-sprite svg {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: bottom;
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
+            /* Respiración: Ciclo humano real (aprox 4s) */
+            animation: characterBreathe 4.5s ease-in-out infinite;
+        }
+
+        @keyframes characterBreathe {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(2px);
+            }
+        }
+
+        /* Modo Presentación PDF Minimalista (Aspect Ratio 1890x1063) */
+        .presenting-mode #sprite-left.presenter,
+        .presenting-mode #sprite-right.presenter {
+            z-index: 200;
+            filter: none !important;
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+        }
+
+        .presenting-mode .char-sprite:not(.presenter) {
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        .presenting-mode #paper-object {
+            filter: blur(10px);
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .presenting-mode #bubble-main {
+            opacity: 0 !important;
+            pointer-events: none;
+        }
+
+        #pdf-viewer-container {
+            display: none;
+            position: absolute;
+            inset: 0;
+            z-index: 150;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            transition: opacity 0.3s ease-out;
+        }
+
+        .pdf-wrapper {
+            position: relative;
+            width: 75%;
+            aspect-ratio: 1890 / 1063;
+            pointer-events: auto;
+        }
+
+        .pdf-frame-box {
+            width: 100%;
+            height: 100%;
+            border: 2px solid var(--trevi-gold);
+            border-radius: 5px;
+            overflow: hidden;
+            background: #222;
+            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.9);
+            display: flex;
+        }
+
+        #pdf-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            pointer-events: none;
+            display: block;
+        }
+
+        #pdf-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: none;
+        }
+
+        .pdf-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid var(--trevi-gold);
+            color: var(--trevi-gold);
+            font-size: 2rem;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+            backdrop-filter: blur(5px);
+            z-index: 10;
+        }
+
+        .pdf-arrow:hover {
+            background: var(--trevi-gold);
+            color: black;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .pdf-arrow.close-btn {
+            border-color: var(--trevi-red);
+            color: var(--trevi-red);
+        }
+
+        .pdf-arrow.close-btn:hover {
+            background: var(--trevi-red);
+            color: white;
+        }
+
+        #pdf-btn-prev {
+            left: -100px;
+        }
+
+        #pdf-btn-next {
+            right: -100px;
+        }
+
+        /* Bocadillos */
+        .bubble {
+            flex-grow: 1;
+            background: white;
+            color: black;
+            border-radius: 15px;
+            padding: 40px;
+            border: 4px solid var(--pencil-gray);
+            box-shadow: 10px 10px 0px rgba(0, 0, 0, 0.15);
+            margin: 0 40px 60px;
+            pointer-events: none;
+            position: relative;
+            min-height: 160px;
+            font-size: 1.5rem;
+            line-height: 1.5;
+            font-weight: 500;
+            cursor: pointer;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+        }
+
+        .bubble.active {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        .bubble-name {
+            position: absolute;
+            top: -30px;
+            color: white;
+            padding: 8px 25px;
+            font-weight: bold;
+            border-radius: 8px;
+            font-size: 1.4rem;
+            letter-spacing: 3px;
+            box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .bubble::after {
+            content: '';
+            position: absolute;
+            bottom: 20px;
+            border-top: 15px solid transparent;
+            border-bottom: 15px solid transparent;
+        }
+
+        .arrow-left::after {
+            left: -30px;
+            border-right: 30px solid white;
+        }
+
+        .arrow-left::before {
+            content: '';
+            position: absolute;
+            bottom: 17px;
+            left: -36px;
+            border-top: 18px solid transparent;
+            border-bottom: 18px solid transparent;
+            border-right: 36px solid var(--pencil-gray);
+            z-index: -1;
+        }
+
+        .arrow-right::after {
+            right: -30px;
+            border-left: 30px solid white;
+        }
+
+        .arrow-right::before {
+            content: '';
+            position: absolute;
+            bottom: 17px;
+            right: -36px;
+            border-top: 18px solid transparent;
+            border-bottom: 18px solid transparent;
+            border-left: 36px solid var(--pencil-gray);
+            z-index: -1;
+        }
+
+        .next-indicator {
+            position: absolute;
+            bottom: 15px;
+            right: 25px;
+            color: var(--trevi-red);
+            font-weight: bold;
+            font-size: 2rem;
+            cursor: pointer;
+            animation: blink 1s infinite;
+            display: none;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        /* UI de Decisiones */
+        #choice-modal {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 500;
+            pointer-events: none;
+        }
+
+        #choice-modal-bg {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            transition: opacity 0.2s ease-out;
+            pointer-events: none;
+        }
+
+        #choice-modal-content {
+            position: relative;
+            z-index: 501;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            transition: opacity 0.2s ease-out;
+            pointer-events: none;
+        }
+
+        #choice-modal-content h2,
+        #choice-modal-content .choice-grid {
+            pointer-events: auto;
+        }
+
+        .choice-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        /* Tooltip en Choices */
+        .choice-card {
+            position: relative;
+            width: 140px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            z-index: 1;
+        }
+
+        .choice-card:hover {
+            transform: translateY(-10px);
+            z-index: 50;
+        }
+
+        .choice-card::after {
+            content: attr(data-desc);
+            position: absolute;
+            bottom: -70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid var(--trevi-gold);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            width: 220px;
+            opacity: 0;
+            pointer-events: none;
+            font-family: var(--font-main);
+            letter-spacing: 0;
+            z-index: 10;
+            font-weight: normal;
+            text-shadow: none;
+            transition: opacity 0.1s, transform 0.1s;
+            transition-delay: 0s;
+        }
+
+        .choice-card:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-10px);
+            transition-delay: 0.8s;
+        }
+
+        .choice-icon {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin: 0 auto 15px;
+            border: 4px solid var(--trevi-gold);
+            box-shadow: 0 0 20px var(--trevi-gold);
+        }
+
+        .choice-card span {
+            color: white;
+            letter-spacing: 3px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-shadow: 0 2px 4px black;
+        }
+
+        /* Side UI Buttons con Tooltip */
+        .ui-trigger {
+            position: absolute;
+            top: 25px;
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid var(--trevi-gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            cursor: pointer;
+            z-index: 300;
+            transition: 0.3s;
+        }
+
+        .ui-trigger:hover {
+            background: var(--trevi-red);
+            border-color: white;
+            transform: scale(1.1);
+        }
+
+        .ui-trigger::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            color: #000;
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            font-weight: 900;
+            opacity: 0;
+            transition: 0.3s;
+            pointer-events: none;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 4px 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            white-space: nowrap;
+        }
+
+        body.presentation-mode-active .ui-trigger::after,
+        body.presentation-mode-active .tab-icon::after {
+            display: none !important;
+        }
+
+        #ui-doubts {
+            left: 25px;
+        }
+
+        #ui-doubts::after {
+            top: 60%;
+            left: 80%;
+            transform: rotate(15deg);
+        }
+
+        #ui-doubts:hover::after {
+            opacity: 1;
+            transform: translate(15px, 15px) rotate(0deg);
+        }
+
+        #ui-nodes {
+            right: 25px;
+        }
+
+        #ui-nodes::after {
+            top: 60%;
+            right: 80%;
+            transform: rotate(-15deg);
+            transform-origin: top right;
+        }
+
+        #ui-nodes:hover::after {
+            opacity: 1;
+            transform: translate(-15px, 15px) rotate(0deg);
+        }
+
+        /* Modales */
+        .modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 10, 10, 0.95);
+            display: none;
+            flex-direction: column;
+            padding: 50px;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--glass-bg);
+            border: 1px solid var(--trevi-gold);
+            flex: 1;
+            padding: 40px;
+            color: white;
+            border-radius: 8px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #modal-doubts .modal-content {
+            overflow-y: auto;
+        }
+
+        .node-list-container {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 15px;
+        }
+
+        .node-list-container::-webkit-scrollbar,
+        #modal-doubts .modal-content::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        .node-list-container::-webkit-scrollbar-track,
+        #modal-doubts .modal-content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 6px;
+        }
+
+        .node-list-container::-webkit-scrollbar-thumb,
+        #modal-doubts .modal-content::-webkit-scrollbar-thumb {
+            background: var(--trevi-gold);
+            border-radius: 6px;
+            border: 3px solid rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-close-x {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 3rem;
+            color: white;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 300;
+            z-index: 2000;
+            line-height: 1;
+        }
+
+        .btn-close-x:hover {
+            color: var(--trevi-red);
+            transform: scale(1.1);
+        }
+
+        /* Zona de salto rápido */
+        .skip-container {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            padding: 25px;
+            gap: 15px;
+        }
+
+        .skip-btn {
+            font-size: 2.5rem;
+            color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            filter: drop-shadow(0 0 10px black);
+            opacity: 0;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .skip-container:hover .skip-btn {
+            opacity: 0.5;
+        }
+
+        .skip-btn:hover {
+            opacity: 1 !important;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .skip-btn::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            right: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-right: 15px;
+            color: #000;
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            font-weight: 900;
+            opacity: 0;
+            transition: 0.3s;
+            pointer-events: none;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 4px 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            white-space: nowrap;
+            font-family: var(--font-main);
+        }
+
+        .skip-btn:hover::after {
+            opacity: 1;
+        }
+
+        body.presentation-mode-active .skip-btn::after {
+            display: none !important;
+        }
+
+        .tab-bar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .tab-icon {
+            font-size: 2.5rem;
+            cursor: pointer;
+            padding: 15px;
+            opacity: 0.4;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .tab-icon.active {
+            opacity: 1;
+            transform: scale(1.3);
+            filter: drop-shadow(0 0 10px var(--trevi-gold));
+        }
+
+        /* Tooltip Nodos emanando a 45 grados espaciado */
+        .tab-icon::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #000;
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            font-weight: 900;
+            opacity: 0;
+            transition: opacity 0.2s, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-family: var(--font-main);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .tab-icon:hover::after {
+            opacity: 1;
+            transform: translate(30px, 30px);
+        }
+
+        .node-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        /* Estética de la Idea */
+        .idea-card {
+            background: #1a1a1a;
+            border: 1px solid var(--pencil-gray);
+            border-left: 8px solid var(--trevi-gold);
+            padding: 20px;
+            border-radius: 5px;
+            color: white;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            font-family: var(--font-main);
+        }
+
+        .idea-card-title {
+            color: var(--trevi-gold);
+            font-size: 0.85rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .idea-card-text {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+
+        .idea-flying {
+            position: absolute;
+            z-index: 600;
+            pointer-events: none;
+            width: 350px;
+        }
+
+        @keyframes popAndHold {
+            0% {
+                transform: scale(0.5) translate(-50%, -50%);
+                opacity: 0;
+                top: 50%;
+                left: 50%;
+            }
+
+            100% {
+                transform: scale(1.2) translate(-50%, -50%);
+                opacity: 1;
+                top: 50%;
+                left: 50%;
+            }
+        }
+
+        @keyframes flyToMenu {
+            0% {
+                transform: scale(1.2) translate(-50%, -50%);
+                opacity: 1;
+                top: 50%;
+                left: 50%;
+            }
+
+            100% {
+                transform: scale(0.1) translate(400px, -400px);
+                opacity: 0;
+                top: 50px;
+                left: 90%;
+            }
+        }
+
+        .new-node-anim {
+            animation: highlightNode 2s ease-out forwards;
+        }
+
+        @keyframes highlightNode {
+            0% {
+                box-shadow: 0 0 30px var(--trevi-gold);
+                border-color: white;
+                transform: scale(1.05);
+            }
+
+            100% {
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+                border-color: var(--pencil-gray);
+                transform: scale(1);
+            }
+        }
+
+        /* Title Screen */
+        #title-screen {
+            position: absolute;
+            inset: 0;
+            z-index: 5000;
+            background: radial-gradient(circle at center, #2a2a2a 0%, #000 100%);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 1s ease-out;
+        }
+
+        .title-top {
+            font-size: 1.2rem;
+            color: var(--trevi-gold);
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            opacity: 0.8;
+        }
+
+        .title-main {
+            font-size: 4rem;
+            font-family: var(--font-paper);
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(197, 160, 89, 0.5);
+        }
+
+        .title-author {
+            font-size: 1.5rem;
+            letter-spacing: 3px;
+            font-weight: 300;
+            opacity: 0.6;
+            margin-bottom: 60px;
+        }
+
+        .btn-play {
+            background: none;
+            border: 2px solid var(--trevi-gold);
+            color: var(--trevi-gold);
+            padding: 15px 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            letter-spacing: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-play:hover {
+            background: var(--trevi-gold);
+            color: black;
+            box-shadow: 0 0 30px var(--trevi-gold);
+        }
+
+        .cing-line {
+            position: absolute;
+            background: white;
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        .line-h {
+            width: 100%;
+            height: 1px;
+            left: 0;
+        }
+
+        .line-v {
+            height: 100%;
+            width: 1px;
+            top: 0;
+        }
+
+        /* Pre-Title Click Screen */
+        #pre-title-click {
+            position: absolute;
+            inset: 0;
+            z-index: 6000;
+            background: black;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .pre-click-text {
+            font-size: 1rem;
+            color: white;
+            letter-spacing: 3px;
+            opacity: 0.5;
+            animation: blink 2s infinite;
+        }
+
+        /* End Screen */
+        #end-screen {
+            display: none;
+            position: absolute;
+            inset: 0;
+            z-index: 2000;
+            background: rgba(0, 0, 0, 0.95);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+
+<body oncontextmenu="return false;">
+
+    <div id="app-viewport">
+
+        <div id="pre-title-click" onclick="handlePreClick()">
+            <div class="pre-click-text">HAGA CLIC PARA CONTINUAR</div>
+        </div>
+
+        <div id="title-screen">
+            <div class="cing-line line-h" style="top: 20%;"></div>
+            <div class="cing-line line-h" style="top: 80%;"></div>
+            <div class="cing-line line-v" style="left: 15%;"></div>
+            <div class="cing-line line-v" style="right: 15%;"></div>
+
+            <div class="title-top">Introducción a la</div>
+            <div class="title-main">TEORÍA PURA DE LA<br>DEMOCRACIA</div>
+            <div class="title-author">Antonio García-Trevijano</div>
+
+            <button class="btn-play" onclick="startGame()">COMENZAR</button>
+        </div>
+
+        <div id="game-stage">
+            <div id="focus-dim"></div>
+
+            <div id="ui-doubts" class="ui-trigger" onclick="toggleModal('doubts')" data-tooltip="DUDAS">❓</div>
+            <div id="ui-nodes" class="ui-trigger" onclick="toggleModal('nodes')" data-tooltip="ARQUITECTURA">🏛️</div>
+
+            <div id="paper-object">
+                <div class="paper-header" id="paper-info">Párrafo X | pág. Y</div>
+                <div id="paper-text">Cargando texto...</div>
+                <button id="btn-start-analysis" class="paper-btn-start" onclick="advanceDialogue(event)">COMENZAR
+                    ANÁLISIS</button>
+            </div>
+
+            <div id="conversation-layer">
+                <div id="sprite-left" class="char-sprite"></div>
+                <div id="bubble-main" class="bubble">
+                    <span class="bubble-name" id="speaker-name">Trevijano</span>
+                    <div id="bubble-text"></div>
+                    <div id="btn-next" class="next-indicator" onclick="advanceDialogue(event)">▶</div>
+                </div>
+                <div id="sprite-right" class="char-sprite"></div>
+            </div>
+
+            <!-- Modal PDF Minimalista -->
+            <div id="pdf-viewer-container">
+                <div class="pdf-wrapper">
+                    <div class="pdf-frame-box">
+                        <iframe id="pdf-iframe" src="" scrolling="no"></iframe>
+                        <img id="pdf-img" src="" alt="Presentación">
+                    </div>
+                    <div class="pdf-arrow" id="pdf-btn-prev" onclick="changePdfPage(-1)">❮</div>
+                    <div class="pdf-arrow" id="pdf-btn-next" onclick="handlePdfNext()">❯</div>
+                </div>
+            </div>
+
+            <!-- Modal de Selección -->
+            <div id="choice-modal">
+                <div id="choice-modal-bg"></div>
+                <div id="choice-modal-content">
+                    <h2 style="color: white; margin-bottom: 40px; font-weight: normal; letter-spacing: 2px;">ANÁLISIS
+                        METODOLÓGICO</h2>
+                    <div class="choice-grid">
+                        <div class="choice-card" onclick="submitChoice('C')"
+                            data-desc="Premisa universal necesaria para la coherencia de la teoría.">
+                            <div class="choice-icon">📜</div>
+                            <span>CONDICIÓN</span>
+                        </div>
+                        <div class="choice-card" onclick="submitChoice('D')"
+                            data-desc="Delimitación de fronteras: lo que la teoría rechaza ser.">
+                            <div class="choice-icon">🛡️</div>
+                            <span>DESLINDE</span>
+                        </div>
+                        <div class="choice-card" onclick="submitChoice('G')"
+                            data-desc="Análisis del origen y la evolución histórica de un concepto.">
+                            <div class="choice-icon">🌳</div>
+                            <span>GENEALOGÍA</span>
+                        </div>
+                        <div class="choice-card" onclick="submitChoice('P')"
+                            data-desc="El objetivo final o la verdad que la teoría se compromete a demostrar.">
+                            <div class="choice-icon">💎</div>
+                            <span>PROMESA</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modales -->
+            <div id="modal-doubts" class="modal-overlay">
+                <div class="modal-content">
+                    <button class="btn-close-x" onclick="toggleModal('doubts')">×</button>
+                    <h1 style="color: var(--trevi-gold); border-bottom: 1px solid #333; padding-bottom: 15px;">DUDAS
+                        ENVIADAS</h1>
+                    <div id="doubts-list"></div>
+                </div>
+            </div>
+
+            <div id="modal-nodes" class="modal-overlay">
+                <div class="modal-content">
+                    <button class="btn-close-x" onclick="toggleModal('nodes')">×</button>
+                    <h1 style="color: var(--trevi-gold); text-align: center; margin-bottom: 30px; flex-shrink: 0;">
+                        ARQUITECTURA DE LA TEORÍA</h1>
+                    <div class="tab-bar" style="flex-shrink: 0;">
+                        <div class="tab-icon active" onclick="setTab('C')" data-tooltip="CONDICIÓN">📜</div>
+                        <div class="tab-icon" onclick="setTab('D')" data-tooltip="DESLINDE">🛡️</div>
+                        <div class="tab-icon" onclick="setTab('G')" data-tooltip="GENEALOGÍA">🌳</div>
+                        <div class="tab-icon" onclick="setTab('P')" data-tooltip="PROMESA">💎</div>
+                    </div>
+                    <div class="node-list-container" id="node-list-scroll">
+                        <div id="node-list" class="node-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="flying-synthesis" class="idea-card idea-flying" style="display:none;">
+                <div class="idea-card-title" id="fly-title">C #1</div>
+                <div class="idea-card-text" id="fly-text">Texto</div>
+            </div>
+
+            <!-- Pantalla Final Elegante -->
+            <div id="end-screen">
+                <h1
+                    style="color:var(--trevi-gold); font-size:3rem; letter-spacing:5px; margin-bottom:20px; text-shadow: 0 5px 15px rgba(0,0,0,0.5);">
+                    FIN DEL ANÁLISIS</h1>
+                <p
+                    style="color:white; font-size:1.2rem; max-width:600px; text-align:center; line-height:1.6; opacity: 0.8;">
+                    Has completado el estudio metodológico de este capítulo. Gracias por tu rigor y atención constante.
+                </p>
+            </div>
+
+            <!-- Skip rápido -->
+            <div class="skip-container">
+                <div class="skip-btn" onclick="skipToPrevLevel()" data-tooltip="PÁRRAFO ANTERIOR">⏮️</div>
+                <div class="skip-btn" onclick="skipToNextLevel()" data-tooltip="SALTAR PÁRRAFO">⏭️</div>
+            </div>
+
+            <audio id="music-title" loop>
+                <source src="title.mp3" type="audio/mpeg">
+            </audio>
+            <audio id="music-ambient" loop>
+                <source src="ambient.mp3" type="audio/mpeg">
+            </audio>
+        </div> <!-- Fin #game-stage -->
+    </div> <!-- Fin #app-viewport -->
+
+    <script>
+        const defaultSVG_Left = `<svg viewBox="0 0 100 150"><path d="M50 20c10 0 18-8 18-18S60-16 50-16 32-8 32 2s8 18 18 18zm25 10H25C10 30 0 45 0 65v85h100V65c0-20-10-35-25-35z" fill="%232c3e50"/></svg>`;
+        const defaultSVG_Right = `<svg viewBox="0 0 100 150"><path d="M50 25c9 0 16-7 16-16S59-7 50-7s-16 7-16 16 7 16 16 16zm20 10H30C15 35 5 50 5 70v80h90V70c0-20-10-35-25-35z" fill="%237f8c8d"/></svg>`;
+
+        let currentIdx = 0;
+        let dialogueIdx = 0;
+        let inventory = { 'C': [], 'D': [], 'G': [], 'P': [] };
+        let currentTab = 'C';
+        let isTyping = false;
+        let isWaitingForNextLevel = false;
+        let newNodeId = null;
+        let currentPresFiles = [];
+        let presPageIdx = 0;
+        let currentSpeakerSide = null;
+        let isTransitioning = false;
+
+        // Motor de Audio
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playTick() {
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+            g.gain.setValueAtTime(0.01, audioCtx.currentTime);
+            osc.connect(g); g.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.02);
+        }
+
+        function playThud() {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+        }
+
+        function playCharAppear(side) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            // Trevijano (left) grave, Oponente (right) más agudo
+            const startFreq = side === 'left' ? 150 : 350;
+            const endFreq = side === 'left' ? 100 : 250;
+
+            osc.frequency.setValueAtTime(startFreq, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(endFreq, audioCtx.currentTime + 0.15);
+
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+        }
+
+        // Auto-resume y Música de Inicio
+        window.addEventListener('click', () => {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const titleMusic = document.getElementById('music-title');
+            if (titleMusic.paused && document.getElementById('title-screen').style.display !== 'none') {
+                titleMusic.volume = 0.05;
+                titleMusic.play().catch(() => { });
+            }
+        }, { once: true });
+
+        // TOGGLE QoL: Foreground management
+        const gameStage = document.getElementById('game-stage');
+        const paperObj = document.getElementById('paper-object');
+        const convLayer = document.getElementById('conversation-layer');
+        const choiceModal = document.getElementById('choice-modal');
+
+        gameStage.addEventListener('click', (e) => {
+            if (e.target === gameStage) gameStage.classList.remove('paper-focus');
+        });
+
+        paperObj.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (isTyping || gameStage.classList.contains('presenting-mode')) return;
+
+            if (gameStage.classList.contains('paper-focus')) {
+                gameStage.classList.remove('paper-focus');
+            } else if (gameStage.classList.contains('can-toggle')) {
+                gameStage.classList.add('paper-focus');
+            }
+        });
+
+        convLayer.addEventListener('click', (e) => {
+            if (e.target.id === 'btn-next') return;
+            gameStage.classList.remove('paper-focus');
+        });
+        choiceModal.addEventListener('click', (e) => {
+            gameStage.classList.remove('paper-focus');
+        });
+
+        function init() {
+            if (typeof gameData === 'undefined') {
+                alert("Error: TrevijanoData.js no se ha cargado correctamente.");
+                return;
+            }
+            if (localStorage.getItem('presentationMode') === 'true') {
+                document.body.classList.add('presentation-mode-active');
+            }
+            document.getElementById('sprite-left').innerHTML = defaultSVG_Left;
+            document.getElementById('sprite-right').innerHTML = defaultSVG_Right;
+
+            // Comprobar procedencia para audio
+            const fromConfig = document.referrer.includes('configuracion.html');
+            if (fromConfig) {
+                document.getElementById('title-screen').style.display = 'flex';
+                startTitleMusic();
+                loadLevel();
+            } else {
+                document.getElementById('pre-title-click').style.display = 'flex';
+                loadLevel();
+            }
+        }
+
+        function handlePreClick() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            startTitleMusic();
+            document.getElementById('pre-title-click').style.display = 'none';
+            document.getElementById('title-screen').style.display = 'flex';
+        }
+
+        function startTitleMusic() {
+            const titleMusic = document.getElementById('music-title');
+            titleMusic.volume = 0.05;
+            titleMusic.play().catch(() => {
+                // Fallback si el navegador sigue bloqueando
+                document.getElementById('pre-title-click').style.display = 'flex';
+            });
+        }
+
+        function startGame() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const titleMusic = document.getElementById('music-title');
+            const ambientMusic = document.getElementById('music-ambient');
+
+            // Transición de música
+            titleMusic.pause();
+            ambientMusic.volume = 0.03;
+            ambientMusic.play().catch(e => console.log("Ambient blocked:", e));
+
+            const ts = document.getElementById('title-screen');
+            ts.style.opacity = '0';
+            setTimeout(() => {
+                ts.style.display = 'none';
+                document.getElementById('game-stage').style.display = 'flex';
+            }, 1000);
+        }
+
+        function renderSprite(elementId, pngSrc, defaultSvg) {
+            const el = document.getElementById(elementId);
+            if (pngSrc && pngSrc.trim() !== "") {
+                const currentImg = el.querySelector('img');
+                // Si ya es la misma imagen (o su versión parpadeando), no recargamos
+                if (!currentImg || (currentImg.getAttribute('data-base-src') !== pngSrc && currentImg.getAttribute('src') !== pngSrc)) {
+                    el.innerHTML = `<img src="${pngSrc}" data-base-src="${pngSrc}" alt="">`;
+                }
+            } else {
+                if (!el.querySelector('svg')) {
+                    el.innerHTML = defaultSvg;
+                }
+            }
+        }
+
+        function transitionToLevel(dir) {
+            if (isTransitioning) return;
+            isTransitioning = true;
+
+            const paper = document.getElementById('paper-object');
+            paper.style.opacity = "0";
+            paper.style.transform = dir > 0 ? "rotate(-5deg) translateY(50px)" : "rotate(5deg) translateY(-50px)";
+
+            setTimeout(() => {
+                currentIdx += dir;
+                loadLevel();
+                isTransitioning = false;
+            }, 600);
+        }
+        function loadLevel() {
+            if (currentIdx >= gameData.length) {
+                document.getElementById('end-screen').style.display = 'flex';
+                return;
+            }
+
+            const data = gameData[currentIdx];
+            const paper = document.getElementById('paper-object');
+
+            // Reset Logic
+            dialogueIdx = 0;
+            isWaitingForNextLevel = false;
+            newNodeId = null;
+            currentSpeakerSide = null;
+
+            // RESET ONCLICK HANDLER
+            document.getElementById('btn-next').onclick = (e) => advanceDialogue(e);
+
+            gameStage.classList.remove('paper-focus', 'dimmed', 'presenting-mode', 'can-toggle');
+            document.getElementById('bubble-main').classList.remove('active');
+            document.getElementById('sprite-left').classList.remove('active');
+            document.getElementById('sprite-right').classList.remove('active');
+            document.getElementById('pdf-viewer-container').style.display = 'none';
+
+            // Visibilidad de dudas
+            const uiDoubts = document.getElementById('ui-doubts');
+            if (data.doubts && data.doubts.length > 0) {
+                uiDoubts.style.display = 'flex';
+            } else {
+                uiDoubts.style.display = 'none';
+            }
+
+            document.getElementById('paper-info').innerText = data.info;
+            document.getElementById('paper-text').innerHTML = data.paragraph;
+
+            if (data.raw_length > 1000) {
+                paper.classList.add('wider');
+            } else {
+                paper.classList.remove('wider');
+            }
+
+            paper.style.opacity = "1";
+            paper.style.transform = "rotate(-1deg) translateY(0)";
+
+            document.getElementById('btn-start-analysis').style.display = 'block';
+        }
+
+
+        function advanceDialogue(event) {
+            if (event) event.stopPropagation();
+            if (isTyping) return;
+            gameStage.classList.remove('paper-focus');
+
+            const data = gameData[currentIdx];
+
+            if (dialogueIdx === 0) {
+                document.getElementById('btn-start-analysis').style.display = 'none';
+                gameStage.classList.add('dimmed');
+            }
+
+            if (dialogueIdx < data.dialogues.length) {
+                gameStage.classList.add('can-toggle');
+                showDialogue(data.dialogues[dialogueIdx]);
+                dialogueIdx++;
+            } else {
+                currentSpeakerSide = null;
+                document.getElementById('bubble-main').classList.remove('active');
+                document.getElementById('sprite-left').classList.remove('active');
+                document.getElementById('sprite-right').classList.remove('active');
+                gameStage.classList.add('can-toggle');
+
+                if (localStorage.getItem('presentationMode') === 'true') {
+                    triggerSynthesis();
+                } else {
+                    document.getElementById('choice-modal').style.display = 'flex';
+                }
+            }
+        }
+
+        function showDialogue(d) {
+            const spriteLeft = document.getElementById('sprite-left');
+            const spriteRight = document.getElementById('sprite-right');
+            const bubble = document.getElementById('bubble-main');
+
+            const isNewSpeaker = (currentSpeakerSide !== d.side);
+
+            if (isNewSpeaker) {
+                bubble.classList.remove('active');
+                document.getElementById('btn-next').style.display = 'none';
+            }
+
+            spriteLeft.classList.toggle('active', d.side === 'left');
+            spriteRight.classList.toggle('active', d.side === 'right');
+
+            let pngSrcLeft = d.png;
+            let pngSrcRight = d.png;
+
+            if (d.side === 'left' && d.name === 'Trevijano') {
+                pngSrcLeft = d.png || "Trevijano.png";
+            }
+            if (d.side === 'right' && d.name === 'Trevijano') {
+                pngSrcRight = d.png || "Trevijano.png";
+            }
+
+            if (d.side === 'left') renderSprite('sprite-left', pngSrcLeft, defaultSVG_Left);
+            if (d.side === 'right') renderSprite('sprite-right', pngSrcRight, defaultSVG_Right);
+
+            // Si es una presentación PDF independiente (Array de archivos o PNGs)
+            if (d.presentation) {
+                currentPresFiles = d.presentation;
+                presPageIdx = 0;
+                currentSpeakerSide = null; // Reseteamos porque ocultamos el bocadillo
+                bubble.classList.remove('active');
+
+                document.getElementById('sprite-left').classList.remove('presenter');
+                document.getElementById('sprite-right').classList.remove('presenter');
+                document.getElementById(`sprite-${d.side}`).classList.add('presenter');
+
+                gameStage.classList.add('presenting-mode');
+                document.getElementById('pdf-viewer-container').style.display = 'flex';
+                document.getElementById('pdf-viewer-container').style.opacity = '1';
+                loadPdfPage();
+                return;
+            }
+
+            currentSpeakerSide = d.side;
+
+            // Retardo para que el mensaje aparezca "unas décimas después" del personaje
+            setTimeout(() => {
+                const nameEl = document.getElementById('speaker-name');
+                bubble.className = d.side === 'left' ? 'bubble arrow-left active' : 'bubble arrow-right active';
+
+                nameEl.innerText = d.name;
+                nameEl.style.left = d.side === 'left' ? '20px' : 'auto';
+                nameEl.style.right = d.side === 'right' ? '20px' : 'auto';
+                nameEl.style.backgroundColor = d.side === 'left' ? 'var(--trevi-red)' : 'var(--opp-color)';
+
+                typeText(d.text);
+            }, isNewSpeaker ? 600 : 50);
+        }
+
+        // PDF Presentation Logic Array Minimalista con soporte PNG
+        function loadPdfPage() {
+            if (!currentPresFiles || currentPresFiles.length === 0) return;
+            const file = currentPresFiles[presPageIdx];
+
+            const iframe = document.getElementById('pdf-iframe');
+            const img = document.getElementById('pdf-img');
+
+            if (file.toLowerCase().endsWith('.png') || file.toLowerCase().endsWith('.jpg')) {
+                iframe.style.display = 'none';
+                img.style.display = 'block';
+                img.src = file;
+            } else {
+                img.style.display = 'none';
+                iframe.style.display = 'block';
+                iframe.src = `${file}#view=Fit&toolbar=0&navpanes=0&scrollbar=0`;
+            }
+
+            const btnPrev = document.getElementById('pdf-btn-prev');
+            const btnNext = document.getElementById('pdf-btn-next');
+
+            btnPrev.style.display = (presPageIdx === 0) ? 'none' : 'flex';
+
+            if (presPageIdx === currentPresFiles.length - 1) {
+                btnNext.innerHTML = '✖';
+                btnNext.className = 'pdf-arrow close-btn';
+            } else {
+                btnNext.innerHTML = '❯';
+                btnNext.className = 'pdf-arrow';
+            }
+        }
+
+        function changePdfPage(dir) {
+            presPageIdx += dir;
+            loadPdfPage();
+        }
+
+        function handlePdfNext() {
+            if (presPageIdx === currentPresFiles.length - 1) {
+                // Animación suave de salida antes de reanudar el diálogo
+                const pdfContainer = document.getElementById('pdf-viewer-container');
+                pdfContainer.style.opacity = '0';
+                currentSpeakerSide = null; // Fuerza a que vuelva a aparecer el personaje y el globo con delay
+                setTimeout(() => {
+                    pdfContainer.style.display = 'none';
+                    gameStage.classList.remove('presenting-mode');
+                    setTimeout(() => advanceDialogue(), 300); // Pausa dramática ligera antes de que el personaje hable
+                }, 300);
+            } else {
+                changePdfPage(1);
+            }
+        }
+
+        function typeText(text) {
+            isTyping = true;
+            const el = document.getElementById('bubble-text');
+            el.innerHTML = "";
+            let i = 0;
+            function write() {
+                if (i < text.length) {
+                    el.appendChild(document.createTextNode(text[i]));
+                    playTick(); i++; setTimeout(write, 25);
+                } else {
+                    isTyping = false;
+                    document.getElementById('btn-next').style.display = 'block';
+                }
+            }
+            write();
+        }
+
+        function submitChoice(t) {
+            const data = gameData[currentIdx];
+            document.getElementById('choice-modal').style.display = 'none';
+            currentSpeakerSide = null; // Fuerza animación de entrada para Trevijano
+
+            const fb = data.feedback[t];
+            const isCorrect = (t === data.type);
+
+            showDialogue({ name: "Trevijano", side: "left", text: fb.text, png: fb.png });
+
+            document.getElementById('btn-next').onclick = (e) => {
+                e.stopPropagation();
+                document.getElementById('btn-next').onclick = () => transitionToLevel(1);
+                if (isCorrect) {
+                    triggerSynthesis();
+                } else {
+                    document.getElementById('bubble-main').classList.remove('active');
+                    document.getElementById('choice-modal').style.display = 'flex';
+                }
+            };
+        }
+
+        function triggerSynthesis() {
+            currentSpeakerSide = null;
+            gameStage.classList.remove('can-toggle');
+            document.getElementById('bubble-main').classList.remove('active');
+            document.getElementById('sprite-left').classList.remove('active');
+            document.getElementById('sprite-right').classList.remove('active');
+
+            const data = gameData[currentIdx];
+            const flier = document.getElementById('flying-synthesis');
+            const icons = { 'C': '📜', 'D': '🛡️', 'G': '🌳', 'P': '💎' };
+
+            document.getElementById('fly-title').innerText = `${icons[data.type]} #${data.id}`;
+            document.getElementById('fly-text').innerText = data.synthesis;
+            flier.style.display = 'block';
+            flier.style.animation = 'popAndHold 2s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+
+            inventory[data.type].push(data);
+            newNodeId = data.id;
+
+            setTimeout(() => {
+                flier.style.animation = 'flyToMenu 1.5s forwards ease-in';
+                setTimeout(() => {
+                    flier.style.display = 'none';
+                    isWaitingForNextLevel = true;
+
+                    playThud();
+
+                    toggleModal('nodes');
+                    setTab(data.type);
+                }, 1400);
+            }, 3500);
+        }
+
+        function toggleModal(m) {
+            const modal = document.getElementById(`modal-${m}`);
+            if (modal.style.display === 'flex') {
+                modal.style.display = 'none';
+                if (m === 'nodes' && isWaitingForNextLevel) {
+                    transitionToLevel(1);
+                }
+            } else {
+                modal.style.display = 'flex';
+                if (m === 'nodes') renderNodes();
+                if (m === 'doubts') renderDoubts();
+            }
+        }
+
+        function setTab(t) {
+            currentTab = t;
+            const types = ['C', 'D', 'G', 'P'];
+            document.querySelectorAll('.tab-icon').forEach((ic, i) => ic.classList.toggle('active', types[i] === t));
+            renderNodes();
+        }
+
+        function renderNodes() {
+            const list = document.getElementById('node-list');
+            list.innerHTML = "";
+            inventory[currentTab].forEach(n => {
+                const card = document.createElement('div');
+                card.className = 'idea-card';
+                if (n.id === newNodeId) card.classList.add('new-node-anim');
+                card.innerHTML = `<div class="idea-card-title">#${n.id}</div><div class="idea-card-text">${n.synthesis}</div>`;
+                list.appendChild(card);
+            });
+
+            setTimeout(() => {
+                const scrollArea = document.getElementById('node-list-scroll');
+                scrollArea.scrollTop = scrollArea.scrollHeight;
+            }, 50);
+        }
+
+        function renderDoubts() {
+            const list = document.getElementById('doubts-list');
+            list.innerHTML = "";
+            const doubts = gameData[currentIdx].doubts || [];
+            doubts.forEach(d => {
+                const card = document.createElement('div');
+                card.className = 'idea-card'; card.style.borderLeftColor = 'orange'; card.style.marginBottom = '20px';
+                card.innerHTML = `<div class="idea-card-text">${d}</div>`;
+                list.appendChild(card);
+            });
+        }
+
+        function skipToNextLevel() {
+            if (currentIdx >= gameData.length - 1 || isTransitioning) return;
+            const data = gameData[currentIdx];
+            if (localStorage.getItem('presentationMode') !== 'true') {
+                if (!inventory[data.type].some(n => n.id === data.id)) {
+                    inventory[data.type].push(data);
+                }
+            }
+            transitionToLevel(1);
+        }
+
+        function skipToPrevLevel() {
+            if (currentIdx <= 0 || isTransitioning) return;
+            transitionToLevel(-1);
+        }
+
+        // Lógica de parpadeo (Blink) - Datos humanos reales
+        function startBlinkLogic() {
+            const sprites = document.querySelectorAll('.char-sprite.active img');
+            sprites.forEach(img => {
+                const baseSrc = img.getAttribute('data-base-src');
+                if (!baseSrc || !baseSrc.toLowerCase().endsWith('.png') || baseSrc.toLowerCase().endsWith('1.png')) return;
+
+                // Un humano parpadea cada 3-4 segundos de media
+                if (Math.random() < 0.3) {
+                    const blinkSrc = baseSrc.replace(/\.png$/i, '1.png');
+                    img.src = blinkSrc;
+
+                    // Volver a la original tras un parpadeo humano (150-200ms)
+                    setTimeout(() => {
+                        // Solo revertimos si no ha cambiado el personaje entre medias
+                        if (img.getAttribute('data-base-src') === baseSrc) {
+                            img.src = baseSrc;
+                        }
+                    }, 150);
+                }
+            });
+            setTimeout(startBlinkLogic, 1500 + Math.random() * 2000);
+        }
+        setTimeout(startBlinkLogic, 2000);
+
+        // Esperar a que se cargue el DOM y el js de datos
+        window.onload = init;
+    </script>
+</body>
+
+</html>
