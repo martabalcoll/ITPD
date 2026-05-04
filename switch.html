@@ -968,7 +968,7 @@
             inset: 0;
             z-index: 5000;
             background: radial-gradient(circle at center, #2a2a2a 0%, #000 100%);
-            display: none;
+            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
@@ -1079,10 +1079,6 @@
 <body oncontextmenu="return false;">
 
     <div id="app-viewport">
-
-        <div id="pre-title-click" onclick="handlePreClick()">
-            <div class="pre-click-text">HAGA CLIC PARA CONTINUAR</div>
-        </div>
 
         <div id="title-screen">
             <div class="cing-line line-h" style="top: 20%;"></div>
@@ -1331,16 +1327,10 @@
             document.getElementById('sprite-left').innerHTML = defaultSVG_Left;
             document.getElementById('sprite-right').innerHTML = defaultSVG_Right;
 
-            // Comprobar procedencia para audio
-            const fromConfig = document.referrer.includes('configuracion.html');
-            if (fromConfig) {
-                document.getElementById('title-screen').style.display = 'flex';
-                startTitleMusic();
-                loadLevel();
-            } else {
-                document.getElementById('pre-title-click').style.display = 'flex';
-                loadLevel();
-            }
+            // Switch mode always starts at title screen
+            document.getElementById('title-screen').style.display = 'flex';
+            startTitleMusic();
+            loadLevel();
         }
 
         function handlePreClick() {
