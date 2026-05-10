@@ -35,6 +35,31 @@
             -ms-user-select: none;
         }
 
+        /* --- Edit Mode Styles --- */
+        .edit-icon {
+            cursor: pointer;
+            opacity: 0.5;
+            transition: 0.2s;
+            display: inline-block;
+            margin-left: 5px;
+            font-size: 1rem;
+            filter: grayscale(100%);
+            position: relative;
+            z-index: 9999;
+            pointer-events: auto;
+        }
+
+        .edit-icon:hover {
+            opacity: 1;
+            transform: scale(1.2);
+            filter: grayscale(0%);
+        }
+
+        .btn-play-dark:hover {
+            color: white !important;
+            border-color: white !important;
+        }
+
         #game-stage {
             position: absolute;
             inset: 0;
@@ -50,6 +75,16 @@
             height: 100vh;
             overflow: hidden;
             background: black;
+        }
+
+        /* Rotación para pantallas verticales */
+        body.rotated-mode #app-viewport {
+            transform: translate(-50%, -50%) rotate(90deg);
+            width: 100vh;
+            height: 100vw;
+            position: absolute;
+            top: 50%;
+            left: 50%;
         }
 
         /* --- Responsive Fluid Adjustments --- */
@@ -218,10 +253,31 @@
 
         .paper-focus #choice-modal-bg {
             opacity: 0 !important;
+            pointer-events: none !important;
         }
 
         .paper-focus #choice-modal-content {
             opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        #paper-object.is-summary,
+        .search-paper.is-summary,
+        .book-paper-mini.is-summary {
+            background-color: #e8f5e9 !important;
+            /* Verde pastel suave */
+            border-left: 10px solid #81c784;
+        }
+
+        .idea-card.is-summary {
+            background-color: #2a2a2a !important;
+            /* Gris oscuro un poco más claro */
+            border-left: 8px solid var(--trevi-gold) !important;
+        }
+
+        .search-paper.is-summary .search-info {
+            color: #2e7d32;
+            font-weight: bold;
         }
 
         /* Capa de Conversación */
@@ -321,35 +377,43 @@
 
         .pdf-wrapper {
             position: relative;
-            width: 75%;
-            aspect-ratio: 1890 / 1063;
+            height: calc(65vw / 1.541);
+            display: inline-flex;
             pointer-events: auto;
         }
 
         .pdf-frame-box {
-            width: 100%;
             height: 100%;
             border: 2px solid var(--trevi-gold);
             border-radius: 5px;
             overflow: hidden;
-            background: #222;
+            background: white;
             box-shadow: 0 20px 80px rgba(0, 0, 0, 0.9);
             display: flex;
         }
 
         #pdf-iframe {
-            width: 100%;
             height: 100%;
+            aspect-ratio: 1.541;
             border: none;
             pointer-events: none;
             display: block;
         }
 
         #pdf-img {
-            width: 100%;
             height: 100%;
-            object-fit: contain;
+            width: auto;
             display: none;
+        }
+
+        #pdf-clip {
+            position: absolute;
+            height: 13%;
+            width: auto;
+            top: -4.12%;
+            right: 5%;
+            z-index: 10;
+            pointer-events: none;
         }
 
         .pdf-arrow {
@@ -535,7 +599,8 @@
         }
 
         #choice-modal-content h2,
-        #choice-modal-content .choice-grid {
+        #choice-modal-content .choice-grid,
+        #btn-choice-close {
             pointer-events: auto;
         }
 
@@ -544,6 +609,15 @@
             grid-template-columns: 1fr 1fr;
             gap: 40px;
         }
+
+        /* Bloqueo UI durante la fase de elección (modal-open en body) */
+        body.modal-open .skip-container,
+        body.modal-open #btn-start-analysis,
+        body.modal-open #ui-doubts,
+        body.modal-open #ui-nodes {
+            display: none !important;
+        }
+
 
         /* Tooltip en Choices */
         .choice-card {
@@ -717,34 +791,41 @@
             overflow-y: auto;
         }
 
-        .node-list-container {
+        .node-list-container,
+        .book-papers-container,
+        #search-list {
             flex: 1;
             overflow-y: auto;
-            padding-right: 15px;
+            padding: 30px;
         }
 
         .node-list-container::-webkit-scrollbar,
+        .book-papers-container::-webkit-scrollbar,
+        #search-list::-webkit-scrollbar,
         #modal-doubts .modal-content::-webkit-scrollbar {
-            width: 12px;
+            width: 10px;
         }
 
         .node-list-container::-webkit-scrollbar-track,
+        .book-papers-container::-webkit-scrollbar-track,
+        #search-list::-webkit-scrollbar-track,
         #modal-doubts .modal-content::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.2);
         }
 
         .node-list-container::-webkit-scrollbar-thumb,
+        .book-papers-container::-webkit-scrollbar-thumb,
+        #search-list::-webkit-scrollbar-thumb,
         #modal-doubts .modal-content::-webkit-scrollbar-thumb {
             background: var(--trevi-gold);
-            border-radius: 6px;
-            border: 3px solid rgba(0, 0, 0, 0.4);
+            border-radius: 5px;
         }
 
         .btn-close-x {
             position: absolute;
             top: 20px;
-            right: 30px;
+            right: 60px;
+            /* Movido para no tapar el scrollbar */
             font-size: 3rem;
             color: white;
             background: none;
@@ -787,6 +868,10 @@
             opacity: 0.5;
         }
 
+        body.modal-open .skip-container {
+            display: none !important;
+        }
+
         .skip-btn:hover {
             opacity: 1 !important;
             color: white;
@@ -798,25 +883,195 @@
             position: absolute;
             right: 100%;
             top: 50%;
-            transform: translateY(-50%);
-            margin-right: 15px;
-            color: #000;
-            font-size: 0.75rem;
-            letter-spacing: 2px;
-            font-weight: 900;
+            transform: translateY(-50%) translateX(-10px);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            pointer-events: none;
             opacity: 0;
             transition: 0.3s;
-            pointer-events: none;
-            background: rgba(255, 255, 255, 0.85);
-            padding: 4px 10px;
-            border-radius: 4px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-            white-space: nowrap;
+            letter-spacing: 1px;
             font-family: var(--font-main);
+            border: 1px solid var(--trevi-gold);
+            margin-right: 15px;
         }
 
         .skip-btn:hover::after {
             opacity: 1;
+            transform: translateY(-50%) translateX(0);
+        }
+
+        /* Search & Book Items */
+        .search-paper {
+            background: var(--paper-color);
+            color: var(--pencil-gray);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+            font-family: var(--font-paper);
+            transform: rotate(-0.5deg);
+        }
+
+        .search-paper:hover {
+            transform: rotate(0deg) scale(1.02);
+            box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .badge-analyzed {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 0.6rem;
+            color: #4CAF50;
+            border: 1px solid #4CAF50;
+            padding: 2px 6px;
+            font-family: var(--font-main);
+            font-weight: bold;
+            letter-spacing: 1px;
+            pointer-events: none;
+            background: rgba(76, 175, 80, 0.05);
+            border-radius: 2px;
+        }
+
+        .search-info {
+            color: var(--trevi-gold);
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .search-snippet {
+            font-family: var(--font-paper);
+            font-size: 1rem;
+            line-height: 1.4;
+            opacity: 0.7;
+        }
+
+        /* Book Layout */
+        .book-page-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 5px;
+        }
+
+        .book-progress-container {
+            width: 250px;
+            margin: 0 auto 30px;
+            text-align: center;
+        }
+
+        .book-progress-bar-bg {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 8px;
+            cursor: pointer;
+            /* Indicar que es clickeable */
+        }
+
+        .book-progress-fill {
+            height: 100%;
+            background: var(--trevi-gold);
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--trevi-gold);
+        }
+
+        .book-papers-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .book-paper-mini {
+            background: var(--paper-color);
+            color: var(--pencil-gray);
+            padding: 30px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+            font-family: var(--font-paper);
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+            transform: rotate(-0.5deg);
+        }
+
+        .book-paper-mini:hover {
+            transform: rotate(0deg) scale(1.02);
+            box-shadow: 10px 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .book-paper-mini.completed::after {
+            content: 'LEÍDO';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 0.7rem;
+            color: #4CAF50;
+            border: 1px solid #4CAF50;
+            padding: 2px 6px;
+            font-family: var(--font-main);
+            font-weight: bold;
+        }
+
+        /* Confirmation Modal */
+        #modal-confirm {
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10000;
+        }
+
+        .confirm-box {
+            background: var(--glass-bg);
+            border: 2px solid var(--trevi-gold);
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 1);
+        }
+
+        .confirm-btns {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn-confirm {
+            padding: 10px 25px;
+            border: 1px solid white;
+            background: none;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            border-radius: 4px;
+        }
+
+        .btn-confirm.yes {
+            background: var(--trevi-red);
+            border-color: var(--trevi-red);
+        }
+
+        .btn-confirm:hover {
+            transform: scale(1.1);
         }
 
         body.presentation-mode-active .skip-btn::after {
@@ -907,9 +1162,24 @@
 
         .idea-flying {
             position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             z-index: 600;
             pointer-events: none;
             width: 350px;
+        }
+
+        @keyframes compressPaper {
+            0% {
+                transform: rotate(-1deg) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: rotate(0deg) scale(0.1);
+                opacity: 0;
+            }
         }
 
         @keyframes popAndHold {
@@ -945,20 +1215,19 @@
         }
 
         .new-node-anim {
-            animation: highlightNode 2s ease-out forwards;
+            animation: highlightNode 2s infinite alternate ease-in-out;
+            border-left: 8px solid var(--trevi-gold) !important;
         }
 
         @keyframes highlightNode {
             0% {
-                box-shadow: 0 0 30px var(--trevi-gold);
-                border-color: white;
-                transform: scale(1.05);
+                box-shadow: 0 0 2px rgba(255, 255, 255, 0.1);
+                transform: scale(1);
             }
 
             100% {
-                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-                border-color: var(--pencil-gray);
-                transform: scale(1);
+                box-shadow: 0 0 10px white;
+                transform: scale(1.005);
             }
         }
 
@@ -972,7 +1241,9 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: opacity 1s ease-out;
+            opacity: 0;
+            transform: scale(1.05);
+            transition: opacity 1.5s ease-out, transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .title-top {
@@ -1051,6 +1322,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            transition: opacity 1s ease-out;
         }
 
         .pre-click-text {
@@ -1094,8 +1366,80 @@
             <div class="title-main">TEORÍA PURA DE LA<br>DEMOCRACIA</div>
             <div class="title-author">Antonio García-Trevijano</div>
 
-            <button class="btn-play" onclick="startGame()">COMENZAR</button>
+            <button id="btn-start-standard" class="btn-play" onclick="startGame()"
+                style="display:none;">COMENZAR</button>
+
+            <div id="btns-start-saved" style="display:none; flex-direction:column; gap:15px; align-items:center;">
+                <button class="btn-play btn-play-dark" onclick="showNewGameWarning()"
+                    style="font-size:1.2rem; background:rgba(0,0,0,0.4); border-color:#555;">NUEVA LECTURA</button>
+                <button class="btn-play" onclick="confirmLoad(true)">CONTINUAR LECTURA</button>
+            </div>
         </div>
+
+        <!-- Modal Aviso Nueva Lectura -->
+        <div id="modal-new-warning" class="modal-overlay"
+            style="align-items:center; justify-content:center; z-index:6000;">
+            <div class="confirm-box" style="text-align:center;">
+                <p style="font-size:1.2rem; margin-bottom:30px; line-height:1.5;">Si comienzas una lectura nueva, tus
+                    datos de la lectura anterior se perderán.</p>
+                <div class="confirm-btns" style="flex-direction:row; gap:15px; justify-content:center;">
+                    <button class="btn-confirm yes" onclick="confirmLoad(false)"
+                        style="background:var(--trevi-gold); border-color:var(--trevi-gold); color:black;">ACEPTAR</button>
+                    <button class="btn-confirm"
+                        onclick="document.getElementById('modal-new-warning').style.display='none'">CANCELAR</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Edición Texto -->
+        <div id="modal-edit-text" class="modal-overlay"
+            style="align-items:center; justify-content:center; z-index:9000; backdrop-filter:blur(5px);">
+            <div class="confirm-box" style="width: 80%; max-width: 800px;">
+                <h2 style="color:var(--trevi-gold); margin-bottom:20px;">EDICIÓN DE DATOS</h2>
+                <textarea id="edit-textarea"
+                    style="width:100%; height:250px; background:#111; color:white; border:1px solid var(--trevi-gold); padding:15px; font-family:var(--font-main); font-size:1.1rem; line-height:1.5; box-sizing:border-box;"></textarea>
+                <div class="confirm-btns">
+                    <button class="btn-confirm yes" id="btn-edit-save"
+                        style="background:var(--trevi-gold); color:black; border-color:var(--trevi-gold);">GUARDAR
+                        CAMBIOS</button>
+                    <button class="btn-confirm"
+                        onclick="document.getElementById('modal-edit-text').style.display='none'">CANCELAR</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Selección Imagen -->
+        <div id="modal-edit-image" class="modal-overlay"
+            style="align-items:center; justify-content:center; z-index:9100; backdrop-filter:blur(5px);">
+            <div class="confirm-box" style="width: 80%; max-width: 800px; text-align:center;">
+                <h2 style="color:var(--trevi-gold); margin-bottom:20px;">SELECCIONAR IMAGEN PNG</h2>
+                <div id="image-grid"
+                    style="display:flex; flex-wrap:wrap; gap:15px; justify-content:center; max-height:400px; overflow-y:auto; padding:10px;">
+                    <!-- Injected images -->
+                </div>
+                <div class="confirm-btns" style="margin-top:20px; justify-content:center;">
+                    <button class="btn-confirm"
+                        onclick="document.getElementById('modal-edit-image').style.display='none'">CANCELAR</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Guardando -->
+        <div id="modal-saving" class="modal-overlay"
+            style="align-items:center; justify-content:center; z-index:9500; backdrop-filter: blur(5px);">
+            <div
+                style="width: 60px; height: 60px; border: 5px solid rgba(255,255,255,0.2); border-top-color: var(--trevi-gold); border-radius: 50%; animation: spin 1s linear infinite;">
+            </div>
+            <div style="margin-top:20px; font-size:1.2rem; color:var(--trevi-gold); letter-spacing:3px;">GUARDANDO...
+            </div>
+        </div>
+        <style>
+            @keyframes spin {
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+        </style>
 
         <div id="game-stage">
             <div id="focus-dim"></div>
@@ -1115,6 +1459,9 @@
                 <div id="bubble-main" class="bubble">
                     <span class="bubble-name" id="speaker-name">Trevijano</span>
                     <div id="bubble-text"></div>
+                    <div id="btn-prev-dialogue" class="next-indicator"
+                        style="right: auto; left: 10px; transform: scaleX(-1); display:none; z-index:900;"
+                        onclick="retreatDialogue(event)">▶</div>
                     <div id="btn-next" class="next-indicator" onclick="advanceDialogue(event)">▶</div>
                 </div>
                 <div id="sprite-right" class="char-sprite"></div>
@@ -1127,6 +1474,7 @@
                         <iframe id="pdf-iframe" src="" scrolling="no"></iframe>
                         <img id="pdf-img" src="" alt="">
                     </div>
+                    <img id="pdf-clip" src="Clip.png" alt="">
                     <div class="pdf-arrow" id="pdf-btn-prev" onclick="changePdfPage(-1)">❮</div>
                     <div class="pdf-arrow" id="pdf-btn-next" onclick="handlePdfNext()">❯</div>
                 </div>
@@ -1138,6 +1486,9 @@
                 <div id="choice-modal-content">
                     <h2 style="color: white; margin-bottom: 40px; font-weight: normal; letter-spacing: 2px;">ANÁLISIS
                         METODOLÓGICO</h2>
+                    <div id="btn-choice-close" onclick="retreatDialogue(event)"
+                        style="position: absolute; top: 20px; right: 20px; color: white; font-size: 30px; cursor: pointer; display: none;">
+                        ✖</div>
                     <div class="choice-grid">
                         <div class="choice-card" onclick="submitChoice('C')"
                             data-desc="Premisa universal necesaria para la coherencia de la teoría.">
@@ -1179,13 +1530,54 @@
                     <h1 style="color: var(--trevi-gold); text-align: center; margin-bottom: 30px; flex-shrink: 0;">
                         ARQUITECTURA DE LA TEORÍA</h1>
                     <div class="tab-bar" style="flex-shrink: 0;">
-                        <div class="tab-icon active" onclick="setTab('C')" data-tooltip="CONDICIÓN">📜</div>
-                        <div class="tab-icon" onclick="setTab('D')" data-tooltip="DESLINDE">🛡️</div>
-                        <div class="tab-icon" onclick="setTab('G')" data-tooltip="GENEALOGÍA">🌳</div>
-                        <div class="tab-icon" onclick="setTab('P')" data-tooltip="PROMESA">💎</div>
+                        <div class="tab-icon active" onclick="setTab('C', true)" data-tooltip="CONDICIÓN">📜</div>
+                        <div class="tab-icon" onclick="setTab('D', true)" data-tooltip="DESLINDE">🛡️</div>
+                        <div class="tab-icon" onclick="setTab('G', true)" data-tooltip="GENEALOGÍA">🌳</div>
+                        <div class="tab-icon" onclick="setTab('P', true)" data-tooltip="PROMESA">💎</div>
                     </div>
                     <div class="node-list-container" id="node-list-scroll">
                         <div id="node-list" class="node-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Buscador -->
+            <div id="modal-search" class="modal-overlay">
+                <div class="modal-content">
+                    <button class="btn-close-x" onclick="toggleModal('search')">×</button>
+                    <h1 style="color: var(--trevi-gold); margin-bottom: 30px;">LISTADO DE PÁRRAFOS</h1>
+                    <div class="node-list-container" id="search-list"></div>
+                </div>
+            </div>
+
+            <!-- Modal Índice de Páginas -->
+            <div id="modal-book" class="modal-overlay">
+                <div class="modal-content">
+                    <button class="btn-close-x" onclick="toggleModal('book')">×</button>
+                    <div class="book-page-nav">
+                        <div class="pdf-arrow" style="position:static; transform:none;" onclick="changeBookPage(-1)">❮
+                        </div>
+                        <h1 style="color: var(--trevi-gold); margin:0;" id="book-page-title">PÁGINA 143</h1>
+                        <div class="pdf-arrow" style="position:static; transform:none;" onclick="changeBookPage(1)">❯
+                        </div>
+                    </div>
+                    <div class="book-progress-container">
+                        <div class="book-progress-bar-bg" onclick="jumpToPagePct(event)">
+                            <div id="book-progress-fill" class="book-progress-fill"></div>
+                        </div>
+                    </div>
+                    <div class="book-papers-container" id="book-container"></div>
+                </div>
+            </div>
+
+            <!-- Modal Confirmación -->
+            <div id="modal-confirm" class="modal-overlay" style="align-items:center; justify-content:center;">
+                <div class="confirm-box">
+                    <h2 style="color:var(--trevi-gold); margin-bottom:20px;">¿SALTAR A ESTE PÁRRAFO?</h2>
+                    <p style="opacity:0.8;">Se perderá el progreso del diálogo actual.</p>
+                    <div class="confirm-btns">
+                        <button class="btn-confirm" onclick="toggleModal('confirm')">CANCELAR</button>
+                        <button class="btn-confirm yes" onclick="executeJump()">VIAJAR</button>
                     </div>
                 </div>
             </div>
@@ -1208,9 +1600,23 @@
 
             <!-- Skip rápido -->
             <div class="skip-container">
-                <div class="skip-btn" onclick="skipToPrevLevel()" data-tooltip="PÁRRAFO ANTERIOR">⏮️</div>
-                <div class="skip-btn" onclick="skipToNextLevel()" data-tooltip="SALTAR PÁRRAFO">⏭️</div>
+                <div id="skip-delete" class="skip-btn" onclick="deleteEditSave()" data-tooltip="BORRAR PARTIDA EDICIÓN"
+                    style="display:none; color:var(--trevi-red);">🗑️</div>
+                <div id="skip-save" class="skip-btn" onclick="saveGame()" data-tooltip="GUARDAR LECTURA">💾</div>
+                <div id="skip-reached" class="skip-btn" onclick="goToReached()" data-tooltip="MÁXIMO ALCANZADO">🏁</div>
+                <div id="skip-resume" class="skip-btn" onclick="resumeProgress()" data-tooltip="SIGUIENTE PENDIENTE">📍
+                </div>
+                <div id="skip-search" class="skip-btn" onclick="toggleModal('search')"
+                    data-tooltip="LISTADO DE PÁRRAFOS">🔍</div>
+                <div id="skip-book" class="skip-btn" onclick="toggleModal('book')" data-tooltip="ÍNDICE DE PÁGINAS">📖
+                </div>
+                <div id="skip-prev" class="skip-btn" onclick="skipToPrevLevel()" data-tooltip="PÁRRAFO ANTERIOR">⏮️
+                </div>
+                <div id="skip-next" class="skip-btn" onclick="skipToNextLevel()" data-tooltip="SALTAR PÁRRAFO">⏭️</div>
             </div>
+
+            <!-- Modal Carga -->
+            <div id="modal-load" class="modal-overlay" style="display:none !important;"></div>
 
             <audio id="music-title" loop>
                 <source src="title.mp3" type="audio/mpeg">
@@ -1231,14 +1637,421 @@
         let currentTab = 'C';
         let isTyping = false;
         let isWaitingForNextLevel = false;
-        let newNodeId = null;
+        let sessionNewNodes = new Set();
         let currentPresFiles = [];
         let presPageIdx = 0;
-        let currentSpeakerSide = null;
+        let isEditMode = false;
+        let fileHandle = null;
         let isTransitioning = false;
+        let isPresentationMode = false;
+        let currentSpeakerSide = null;
         let talkInterval = null;
+        let typingTimeout = null;
+        let maxCompletedIdx = -1;
+        let maxReachedIdx = 0;
+        let lastSavedIdx = -1;
+        let jumpTargetIdx = null;
+        let currentBookPage = 0;
+        let pagesMap = [];
 
-        // Motor de Audio
+        let currentTalkContext = null;
+        let dirHandle = null;
+
+        window.onerror = function (msg, url, lineNo, columnNo, error) {
+            console.error(msg, url, lineNo, columnNo, error);
+            if (isEditMode) alert("ERROR JS: " + msg + " (Línea: " + lineNo + ")");
+            return false;
+        };
+
+        function getSaveKey() {
+            return isEditMode ? 'save_trevijano_edit' : 'save_trevijano';
+        }
+
+        function deleteEditSave() { localStorage.removeItem('save_trevijano_edit'); location.reload(); }
+
+        async function saveGameDataToFile() {
+            if (!fileHandle) return;
+            document.getElementById('modal-saving').style.display = 'flex';
+            try {
+                const writable = await fileHandle.createWritable();
+                const jsContent = "const gameData = " + JSON.stringify(gameData, null, 4) + ";\n";
+                await writable.write(jsContent);
+                await writable.close();
+            } catch (e) {
+                console.error("Error guardando:", e);
+                alert("Error al guardar el archivo en modo edición.");
+            }
+            // Remove the delay to avoid blocking the UI flow in edit mode
+            document.getElementById('modal-saving').style.display = 'none';
+        }
+
+        async function editData(idx, prop, subIdx, key, fIdx) {
+            if (!isEditMode) return;
+            const modal = document.getElementById('modal-edit-text');
+            const ta = document.getElementById('edit-textarea');
+            let oldVal = "";
+            let targetObj = null;
+
+            if (prop === 'dialogues' || prop === 'feedback') {
+                const targetArr = prop === 'dialogues' ? gameData[idx].dialogues : gameData[idx].feedback[subIdx];
+                const targetIdx = prop === 'dialogues' ? subIdx : fIdx;
+                targetObj = targetArr[targetIdx];
+                oldVal = targetObj[key] || "";
+            } else if (prop === 'doubts') {
+                targetObj = gameData[idx].doubts;
+                oldVal = targetObj[subIdx];
+            } else {
+                targetObj = gameData[idx];
+                oldVal = targetObj[prop];
+            }
+
+            ta.value = oldVal;
+            document.getElementById('btn-edit-save').onclick = async () => {
+                const val = (key === 'type') ? ta.value.trim().toUpperCase() : ta.value;
+                if (prop === 'dialogues' || prop === 'feedback') targetObj[key] = val;
+                else if (prop === 'doubts') targetObj[subIdx] = val;
+                else targetObj[prop] = val;
+
+                if (prop === 'paragraph') gameData[idx].length = ta.value.length;
+
+                modal.style.display = 'none';
+                await saveGameDataToFile();
+
+                if (prop === 'doubts') { renderDoubts(); return; }
+                if (prop === 'synthesis') { renderNodes(); return; }
+                if (key === 'type') { location.reload(); return; }
+
+                if (prop === 'paragraph') { loadLevel(); return; }
+
+                document.getElementById('bubble-text').innerHTML = "";
+                if (prop === 'dialogues') showDialogue(gameData[idx].dialogues[subIdx]);
+                else if (prop === 'feedback') showDialogue(gameData[idx].feedback[subIdx][fIdx]);
+                else loadLevel();
+            };
+            modal.style.display = 'flex';
+        }
+
+        async function requestDirAccess() {
+            if (dirHandle) return dirHandle;
+            try {
+                dirHandle = await window.showDirectoryPicker();
+                return dirHandle;
+            } catch (e) {
+                alert("Necesitas seleccionar la carpeta del juego (Trevijano) para ver la lista de imágenes.");
+                return null;
+            }
+        }
+
+        async function pickFileAndCopy() {
+            if (!dirHandle) {
+                dirHandle = await requestDirAccess();
+                if (!dirHandle) return null;
+            }
+            try {
+                const [filePickerHandle] = await window.showOpenFilePicker();
+                const file = await filePickerHandle.getFile();
+
+                try {
+                    await dirHandle.getFileHandle(file.name, { create: false });
+                    return file.name;
+                } catch (e) {
+                    const newFileHandle = await dirHandle.getFileHandle(file.name, { create: true });
+                    const writable = await newFileHandle.createWritable();
+                    await writable.write(file);
+                    await writable.close();
+                    return file.name;
+                }
+            } catch (e) {
+                console.error("Error picking file:", e);
+                return null;
+            }
+        }
+
+        async function selectImage(prop, subIdx, fIdx) {
+            if (!isEditMode) return;
+            const dh = await requestDirAccess();
+            if (!dh) return;
+
+            const images = [];
+            for await (const entry of dh.values()) {
+                if (entry.kind === 'file' && entry.name.toLowerCase().endsWith('.png')) {
+                    const n = entry.name.toLowerCase();
+                    if (!n.endsWith('1.png') && !n.endsWith('h.png')) {
+                        images.push(entry.name);
+                    }
+                }
+            }
+
+            const grid = document.getElementById('image-grid');
+            grid.innerHTML = `
+                <div style="cursor:pointer; border:2px dashed var(--trevi-gold); padding:10px; text-align:center; width:100px; display:flex; flex-direction:column; justify-content:center; align-items:center; background:#222; color:var(--trevi-gold); font-weight:bold;" onclick="importNewImage('${prop}', '${subIdx}', ${fIdx})">
+                    <span style="font-size:2rem;">+</span><br><span style="font-size:0.6rem;">IMPORTAR NUEVA</span>
+                </div>
+            `;
+            images.forEach(img => {
+                const div = document.createElement('div');
+                div.style.cssText = 'cursor:pointer; border:1px solid #333; padding:5px; text-align:center; width:100px; display:flex; flex-direction:column; justify-content:space-between; align-items:center; background:#111;';
+                div.innerHTML = `<img src="${img}" style="max-width:100%; max-height:80px; object-fit:contain;"><span style="font-size:0.7rem; color:var(--trevi-gold); word-break:break-all; margin-top:5px;">${img}</span>`;
+                div.onclick = async () => {
+                    document.getElementById('modal-edit-image').style.display = 'none';
+                    if (prop === 'dialogues') gameData[currentIdx].dialogues[subIdx].png = img;
+                    else if (prop === 'feedback') gameData[currentIdx].feedback[subIdx][fIdx].png = img;
+                    await saveGameDataToFile();
+                    document.getElementById('bubble-text').innerHTML = "";
+                    if (prop === 'dialogues') showDialogue(gameData[currentIdx].dialogues[subIdx]);
+                    else showDialogue(gameData[currentIdx].feedback[subIdx][fIdx]);
+                };
+                grid.appendChild(div);
+            });
+            document.getElementById('modal-edit-image').style.display = 'flex';
+        }
+
+        async function importNewImage(prop, subIdx, fIdx) {
+            const fileName = await pickFileAndCopy();
+            if (fileName) {
+                document.getElementById('modal-edit-image').style.display = 'none';
+                if (prop === 'dialogues') gameData[currentIdx].dialogues[subIdx].png = fileName;
+                else if (prop === 'feedback') gameData[currentIdx].feedback[subIdx][fIdx].png = fileName;
+                await saveGameDataToFile();
+                document.getElementById('bubble-text').innerHTML = "";
+                if (prop === 'dialogues') showDialogue(gameData[currentIdx].dialogues[subIdx]);
+                else showDialogue(gameData[currentIdx].feedback[subIdx][fIdx]);
+            }
+        }
+
+        async function deleteData(idx, prop, subIdx, fIdx) {
+            if (!isEditMode) return;
+            if (prop === 'doubts') {
+                gameData[idx].doubts.splice(subIdx, 1);
+                await saveGameDataToFile();
+                renderDoubts();
+                updateUiDoubts();
+                return;
+            }
+
+            const targetArr = (prop === 'dialogues') ? gameData[idx].dialogues : gameData[idx].feedback[subIdx];
+            const targetIdx = parseInt((prop === 'dialogues') ? subIdx : fIdx, 10);
+
+            if (targetArr.length <= 1) { alert("No se puede eliminar el único mensaje."); return; }
+            targetArr.splice(targetIdx, 1);
+            await saveGameDataToFile();
+
+            let nextIdx = Math.min(targetIdx, targetArr.length - 1);
+            document.getElementById('bubble-text').innerHTML = "";
+            if (prop === 'dialogues') {
+                dialogueIdx = nextIdx;
+                currentTalkContext = { type: 'dialogues', subIdx: nextIdx };
+                showDialogue(targetArr[nextIdx]);
+                dialogueIdx++;
+            } else {
+                feedbackIdx = nextIdx;
+                currentTalkContext = { type: 'feedback', subIdx: subIdx, fIdx: nextIdx };
+                showDialogue(targetArr[nextIdx]);
+                feedbackIdx++;
+            }
+        }
+
+        async function addDialogue(idx, prop, subIdx, fIdx) {
+            if (!isEditMode) return;
+            const targetArr = (prop === 'dialogues') ? gameData[idx].dialogues : gameData[idx].feedback[subIdx];
+            const targetIdx = parseInt((prop === 'dialogues') ? subIdx : fIdx, 10);
+
+            targetArr.splice(targetIdx + 1, 0, { name: "Trevijano", side: "left", text: "...", png: "" });
+            await saveGameDataToFile();
+
+            const nextIdx = targetIdx + 1;
+            document.getElementById('bubble-text').innerHTML = "";
+            isTyping = false;
+            document.getElementById('bubble-main').classList.add('active');
+            if (prop === 'dialogues') {
+                // nextIdx+1 porque advanceDialogue usa dialogueIdx para avanzar AL SIGUIENTE
+                dialogueIdx = nextIdx + 1;
+                currentTalkContext = { type: 'dialogues', subIdx: nextIdx };
+                showDialogue(targetArr[nextIdx]);
+                // Reasignar btn-next para que advanceDialogue use el dialogueIdx correcto
+                document.getElementById('btn-next').onclick = (e) => advanceDialogue(e);
+            } else {
+                feedbackIdx = nextIdx + 1;
+                currentTalkContext = { type: 'feedback', subIdx: subIdx, fIdx: nextIdx };
+                showDialogue(targetArr[nextIdx]);
+                document.getElementById('btn-next').onclick = (e) => advanceFeedback(e);
+            }
+        }
+
+        async function toggleDialogueSide(idx, prop, subIdx, fIdx) {
+            if (!isEditMode) return;
+            const targetArr = (prop === 'dialogues') ? gameData[idx].dialogues : gameData[idx].feedback[subIdx];
+            const targetIdx = parseInt((prop === 'dialogues') ? subIdx : fIdx, 10);
+
+            const d = targetArr[targetIdx];
+            d.side = (d.side === 'left') ? 'right' : 'left';
+            await saveGameDataToFile();
+            document.getElementById('bubble-text').innerHTML = "";
+            showDialogue(d);
+        }
+
+        async function setTypeDirectly(idx, t) {
+            if (!isEditMode) return;
+            gameData[idx].type = t;
+            await saveGameDataToFile();
+            loadLevel();
+        }
+
+        async function addPresentation(idx, prop, subIdx, fIdx) {
+            if (!isEditMode) return;
+            const fileName = await pickFileAndCopy();
+            if (!fileName) return;
+
+            const targetArr = (prop === 'dialogues') ? gameData[idx].dialogues : gameData[idx].feedback[subIdx];
+            const targetIdx = parseInt((prop === 'dialogues') ? subIdx : fIdx, 10);
+
+            targetArr.splice(targetIdx + 1, 0, { name: "Trevijano", side: "left", presentation: [fileName] });
+            await saveGameDataToFile();
+
+            const nextIdx = targetIdx + 1;
+            document.getElementById('bubble-text').innerHTML = "";
+            document.getElementById('bubble-main').classList.add('active');
+            if (prop === 'dialogues') {
+                dialogueIdx = nextIdx + 1;
+                currentTalkContext = { type: 'dialogues', subIdx: nextIdx };
+                showDialogue(targetArr[nextIdx]);
+                document.getElementById('btn-next').onclick = (e) => advanceDialogue(e);
+            } else {
+                feedbackIdx = nextIdx + 1;
+                currentTalkContext = { type: 'feedback', subIdx: subIdx, fIdx: nextIdx };
+                showDialogue(targetArr[nextIdx]);
+                document.getElementById('btn-next').onclick = (e) => advanceFeedback(e);
+            }
+        }
+
+        async function addPresFile(idx, prop, subIdx, fIdx) {
+            const fileName = await pickFileAndCopy();
+            if (!fileName) return;
+            const targetArr = (prop === 'dialogues') ? gameData[idx].dialogues : gameData[idx].feedback[subIdx];
+            const targetIdx = parseInt((prop === 'dialogues') ? subIdx : fIdx, 10);
+
+            const pres = targetArr[targetIdx].presentation;
+            pres.push(fileName);
+            currentPresFiles = pres;
+            await saveGameDataToFile();
+            presPageIdx = pres.length - 1;
+            loadPdfPage();
+        }
+
+        async function deletePresFile(idx, prop, subIdx, fIdx, pIdx) {
+            const targetArr = (prop === 'dialogues') ? gameData[idx].dialogues : gameData[idx].feedback[subIdx];
+            const targetIdx = parseInt((prop === 'dialogues') ? subIdx : fIdx, 10);
+
+            const pres = targetArr[targetIdx].presentation;
+            pres.splice(pIdx, 1);
+            if (pres.length === 0) {
+                deletePresentation(idx, prop, subIdx, fIdx);
+            } else {
+                currentPresFiles = pres;
+                await saveGameDataToFile();
+                if (presPageIdx >= pres.length) presPageIdx = pres.length - 1;
+                loadPdfPage();
+            }
+        }
+
+        async function deletePresentation(idx, prop, subIdx, fIdx) {
+            const targetArr = (prop === 'dialogues') ? gameData[idx].dialogues : gameData[idx].feedback[subIdx];
+            const targetIdx = parseInt((prop === 'dialogues') ? subIdx : fIdx, 10);
+
+            if (targetArr.length <= 1) { alert("No se puede eliminar el único mensaje del párrafo."); return; }
+            targetArr.splice(targetIdx, 1);
+            await saveGameDataToFile();
+            document.getElementById('pdf-viewer-container').style.display = 'none';
+            gameStage.classList.remove('presenting-mode');
+            const pBox = document.getElementById('pres-edit-box');
+            if (pBox) pBox.remove();
+
+            document.getElementById('bubble-text').innerHTML = "";
+            if (prop === 'dialogues') {
+                dialogueIdx = Math.max(0, targetIdx - 1);
+                currentTalkContext = { type: 'dialogues', subIdx: dialogueIdx };
+                showDialogue(targetArr[dialogueIdx]);
+                dialogueIdx++;
+            } else {
+                feedbackIdx = Math.max(0, targetIdx - 1);
+                currentTalkContext = { type: 'feedback', subIdx: subIdx, fIdx: feedbackIdx };
+                showDialogue(targetArr[feedbackIdx]);
+                feedbackIdx++;
+            }
+        }
+
+        function retreatDialogue(event) {
+            if (event) event.stopPropagation();
+            if (isTyping) return;
+
+            if (gameStage.classList.contains('presenting-mode')) {
+                document.getElementById('pdf-viewer-container').style.display = 'none';
+                gameStage.classList.remove('presenting-mode');
+                const pBox = document.getElementById('pres-edit-box');
+                if (pBox) pBox.remove();
+
+                if (currentTalkContext.type === 'feedback') {
+                    feedbackIdx -= 2;
+                    if (feedbackIdx < 0) feedbackIdx = 0;
+                    document.getElementById('bubble-text').innerHTML = "";
+                    currentTalkContext = { type: 'feedback', subIdx: feedbackType, fIdx: feedbackIdx };
+                    showDialogue(gameData[currentIdx].feedback[feedbackType][feedbackIdx]);
+                    feedbackIdx++;
+                } else {
+                    dialogueIdx -= 2;
+                    if (dialogueIdx < 0) dialogueIdx = 0;
+                    document.getElementById('bubble-text').innerHTML = "";
+                    currentTalkContext = { type: 'dialogues', subIdx: dialogueIdx };
+                    showDialogue(gameData[currentIdx].dialogues[dialogueIdx]);
+                    dialogueIdx++;
+                }
+                return;
+            }
+
+            if (document.getElementById('choice-modal').style.display === 'flex') {
+                const data = gameData[currentIdx];
+                document.getElementById('choice-modal').style.display = 'none';
+                document.body.classList.remove('modal-open');
+                document.getElementById('btn-start-analysis').style.display = 'block';
+                updateUiDoubts();
+                // Siempre volver al último diálogo antes del modal
+                dialogueIdx = Math.max(0, data.dialogues.length - 1);
+                currentTalkContext = { type: 'dialogues', subIdx: dialogueIdx };
+                document.getElementById('btn-next').onclick = (e) => advanceDialogue(e);
+                showDialogue(data.dialogues[dialogueIdx]);
+                dialogueIdx++;
+                return;
+            }
+
+            if (dialogueIdx > 1 && currentTalkContext.type === 'dialogues') {
+                dialogueIdx -= 2;
+                document.getElementById('bubble-text').innerHTML = "";
+                currentTalkContext = { type: 'dialogues', subIdx: dialogueIdx };
+                document.getElementById('btn-next').onclick = (e) => advanceDialogue(e);
+                showDialogue(gameData[currentIdx].dialogues[dialogueIdx]);
+                dialogueIdx++;
+            } else if (currentTalkContext.type === 'feedback') {
+                if (feedbackIdx > 1) {
+                    feedbackIdx -= 2;
+                    document.getElementById('bubble-text').innerHTML = "";
+                    currentTalkContext = { type: 'feedback', subIdx: feedbackType, fIdx: feedbackIdx };
+                    document.getElementById('btn-next').onclick = (e) => advanceFeedback(e);
+                    showDialogue(gameData[currentIdx].feedback[feedbackType][feedbackIdx]);
+                    feedbackIdx++;
+                } else {
+                    document.getElementById('choice-modal').style.display = 'flex';
+                    document.body.classList.add('modal-open');
+                    if (isEditMode) document.getElementById('btn-choice-close').style.display = 'block';
+                    gameStage.classList.remove('can-toggle');
+                    document.getElementById('bubble-main').classList.remove('active');
+                }
+            }
+        }
+
+        function isAnalyzed(data) {
+            return inventory[data.type].some(n => String(n.id) === String(data.id));
+        }
+
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
         function playTick() {
@@ -1251,38 +2064,100 @@
         }
 
         function playThud() {
+            if (typeof audioCtx === 'undefined' || audioCtx.state === 'suspended') return;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'triangle';
             osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.1);
+            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.2);
             gain.gain.setValueAtTime(0, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.02);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            gain.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
             osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
         }
 
-        function playCharAppear(side) {
+        function playCorrect() {
+            if (typeof audioCtx === 'undefined' || audioCtx.state === 'suspended') return;
+            const now = audioCtx.currentTime;
+            // Tres notas muy rápidas y agudas para el "brillito"
+            [880, 1320, 1760].forEach((f, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(f, now + i * 0.04);
+                gain.gain.setValueAtTime(0, now + i * 0.04);
+                gain.gain.linearRampToValueAtTime(0.02, now + i * 0.04 + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.04 + 0.3);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now + i * 0.04);
+                osc.stop(now + i * 0.04 + 0.3);
+            });
+        }
+
+        function playWrong() {
+            if (typeof audioCtx === 'undefined' || audioCtx.state === 'suspended') return;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            // Trevijano (left) grave, Oponente (right) más agudo
-            const startFreq = side === 'left' ? 150 : 350;
-            const endFreq = side === 'left' ? 100 : 250;
-
-            osc.frequency.setValueAtTime(startFreq, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(endFreq, audioCtx.currentTime + 0.15);
-
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(110, audioCtx.currentTime); // Do2
             gain.gain.setValueAtTime(0, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.05);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-
+            gain.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 0.02); // Un poco más de volumen (0.08)
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
             osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.15);
         }
 
-        // Auto-resume y Música de Inicio
+        function playFanfare() {
+            if (typeof audioCtx === 'undefined' || audioCtx.state === 'suspended') return;
+
+            // Detener la música ambiente exactamente al empezar la fanfarria
+            const ambient = document.getElementById('music-ambient');
+            if (ambient) {
+                ambient.pause();
+                ambient.currentTime = 0;
+            }
+
+            const now = audioCtx.currentTime;
+            // Revertida a la melodía de Sol4, Do5, Re5, Sol5 (la preferida)
+            const notes = [392.00, 523.25, 587.33, 783.99];
+            notes.forEach((baseF, i) => {
+                const startTime = now + i * 0.3;
+                [baseF, baseF * 1.5, baseF * 2].forEach((f, j) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(f, startTime + j * 0.04);
+                    gain.gain.setValueAtTime(0, startTime + j * 0.04);
+                    gain.gain.linearRampToValueAtTime(0.02, startTime + j * 0.04 + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + j * 0.04 + 0.8);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(startTime + j * 0.04);
+                    osc.stop(startTime + j * 0.04 + 0.8);
+                });
+            });
+        }
+
+        function playPing() {
+            if (typeof audioCtx === 'undefined' || audioCtx.state === 'suspended') return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            // Tipo triangle para un sonido más rico pero suave
+            osc.type = 'triangle';
+            // Frecuencia más baja y descendente para un tono Noir/Misterioso (Mi4 -> Mi3)
+            osc.frequency.setValueAtTime(329.63, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(164.81, audioCtx.currentTime + 0.6);
+
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.02, audioCtx.currentTime + 0.05); // Aún más bajo (0.02)
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 1.2);
+        }
+
         window.addEventListener('click', () => {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const titleMusic = document.getElementById('music-title');
@@ -1292,7 +2167,6 @@
             }
         }, { once: true });
 
-        // TOGGLE QoL: Foreground management
         const gameStage = document.getElementById('game-stage');
         const paperObj = document.getElementById('paper-object');
         const convLayer = document.getElementById('conversation-layer');
@@ -1318,6 +2192,15 @@
             gameStage.classList.remove('paper-focus');
         });
         choiceModal.addEventListener('click', (e) => {
+            // Si el click es en el fondo (no en las tarjetas), hacer toggle del papel
+            if (e.target === document.getElementById('choice-modal-bg')) {
+                if (gameStage.classList.contains('paper-focus')) {
+                    gameStage.classList.remove('paper-focus');
+                } else {
+                    gameStage.classList.add('paper-focus');
+                }
+                return;
+            }
             gameStage.classList.remove('paper-focus');
         });
 
@@ -1326,15 +2209,68 @@
                 alert("Error: TrevijanoData.js no se ha cargado correctamente.");
                 return;
             }
-            if (localStorage.getItem('presentationMode') === 'true') {
+
+            // Rotación automática si el ancho es menor al alto
+            function checkOrientation() {
+                if (window.innerWidth < window.innerHeight) {
+                    document.body.classList.add('rotated-mode');
+                } else {
+                    document.body.classList.remove('rotated-mode');
+                }
+            }
+            checkOrientation();
+            window.addEventListener('resize', checkOrientation);
+
+            const params = new URLSearchParams(window.location.search);
+            const mode = params.get('mode');
+
+            if (mode === 'presentation') {
+                isPresentationMode = true;
+                isEditMode = false;
+            } else if (mode === 'edition') {
+                isPresentationMode = false;
+                localStorage.setItem('editModePending', 'true');
+                isEditMode = true;
+            } else {
+                isPresentationMode = false;
+                isEditMode = false;
+            }
+
+            if (isPresentationMode) {
                 document.body.classList.add('presentation-mode-active');
+            } else {
+                document.body.classList.remove('presentation-mode-active');
             }
             document.getElementById('sprite-left').innerHTML = defaultSVG_Left;
             document.getElementById('sprite-right').innerHTML = defaultSVG_Right;
 
-            // Comprobar procedencia para audio
-            const fromConfig = document.referrer.includes('configuracion.html');
-            if (fromConfig) {
+            const rawPages = {};
+            gameData.forEach((d, i) => {
+                if (d.isSummary) return;
+                const infoPart = d.info.split('|')[1] || "";
+                const nums = infoPart.match(/\d+/g);
+                if (nums) {
+                    nums.forEach(pNum => {
+                        if (!rawPages[pNum]) rawPages[pNum] = [];
+                        rawPages[pNum].push(i);
+                    });
+                } else {
+                    if (!rawPages["S/N"]) rawPages["S/N"] = [];
+                    rawPages["S/N"].push(i);
+                }
+            });
+            pagesMap = Object.keys(rawPages).sort((a, b) => parseInt(a) - parseInt(b)).map(p => ({
+                num: p,
+                indices: rawPages[p]
+            }));
+
+            const fromConfig = window.location.href.includes('configuracion.html');
+            const isEditPending = localStorage.getItem('editModePending') === 'true';
+
+            if (isEditPending) {
+                // No mostrar overlays de inicio, esperamos a checkSaves (modo edición)
+                loadLevel();
+            } else if (fromConfig) {
                 document.getElementById('title-screen').style.display = 'flex';
                 startTitleMusic();
                 loadLevel();
@@ -1342,48 +2278,145 @@
                 document.getElementById('pre-title-click').style.display = 'flex';
                 loadLevel();
             }
+            checkSaves();
+        }
+
+        function checkSaves() {
+            if (localStorage.getItem('editModePending') === 'true') {
+                localStorage.removeItem('editModePending');
+                const editOverlay = document.createElement('div');
+                editOverlay.style.cssText = 'position:absolute; inset:0; z-index:9999; background:black; display:flex; flex-direction:column; align-items:center; justify-content:center;';
+                editOverlay.innerHTML = `
+                    <h1 style="color:var(--trevi-gold); letter-spacing:5px; margin-bottom:20px;">MODO EDICIÓN</h1>
+                    <p style="color:white; margin-bottom: 30px; max-width:500px; text-align:center; opacity:0.8; font-size:1.1rem; line-height:1.5;">Selecciona la carpeta raíz de <b>Trevijano</b>. El programa obtendrá permisos de escritura y lectura para gestionar los datos y las imágenes automáticamente.</p>
+                    <button class="btn-play" id="btn-select-dir">SELECCIONAR CARPETA RAÍZ</button>
+                `;
+                document.body.appendChild(editOverlay);
+                document.getElementById('btn-select-dir').onclick = async () => {
+                    try {
+                        dirHandle = await window.showDirectoryPicker({
+                            mode: 'readwrite',
+                            id: 'trevijano-engine-root'
+                        });
+
+                        try {
+                            fileHandle = await dirHandle.getFileHandle('TrevijanoData.js', { create: false });
+                        } catch (e) {
+                            alert("No se ha encontrado el archivo TrevijanoData.js en la carpeta seleccionada.");
+                            return;
+                        }
+
+                        isEditMode = true;
+                        currentIdx = 0;
+                        maxCompletedIdx = -1;
+                        maxReachedIdx = 0;
+                        lastSavedIdx = -1;
+                        inventory = { 'C': [], 'D': [], 'G': [], 'P': [] };
+                        if (localStorage.getItem('save_trevijano_edit')) {
+                            const raw = localStorage.getItem('save_trevijano_edit');
+                            const data = JSON.parse(raw);
+                            currentIdx = data.currentIdx;
+                            maxCompletedIdx = data.maxCompletedIdx;
+                            maxReachedIdx = data.maxReachedIdx;
+                            inventory = data.inventory;
+                        }
+                        editOverlay.style.display = 'none';
+                        loadLevel();
+                        startGame();
+                    } catch (e) {
+                        alert("Debes conceder permisos sobre la carpeta para entrar en modo edición.");
+                        window.location.href = 'configuracion.html';
+                    }
+                };
+                return;
+            }
+
+            const hasSave = localStorage.getItem(getSaveKey()) && localStorage.getItem('presentationMode') !== 'true';
+            const standardBtn = document.getElementById('btn-start-standard');
+            const savedBtns = document.getElementById('btns-start-saved');
+
+            if (hasSave) {
+                standardBtn.style.display = 'none';
+                savedBtns.style.display = 'flex';
+            } else {
+                standardBtn.style.display = 'block';
+                savedBtns.style.display = 'none';
+            }
         }
 
         function handlePreClick() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             startTitleMusic();
-            document.getElementById('pre-title-click').style.display = 'none';
-            document.getElementById('title-screen').style.display = 'flex';
+
+            const pre = document.getElementById('pre-title-click');
+            const title = document.getElementById('title-screen');
+
+            pre.style.opacity = '0';
+            title.style.display = 'flex';
+
+            // Force reflow
+            title.offsetHeight;
+
+            title.style.opacity = '1';
+            title.style.transform = 'scale(1)';
+
+            setTimeout(() => {
+                pre.style.display = 'none';
+            }, 1000);
         }
 
         function startTitleMusic() {
             const titleMusic = document.getElementById('music-title');
             titleMusic.volume = 0.05;
-            titleMusic.play().catch(() => {
-                // Fallback si el navegador sigue bloqueando
-                document.getElementById('pre-title-click').style.display = 'flex';
-            });
+            titleMusic.play().catch(() => { });
         }
 
         function startGame() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-
             const titleMusic = document.getElementById('music-title');
             const ambientMusic = document.getElementById('music-ambient');
-
-            // Transición de música
             titleMusic.pause();
+            titleMusic.currentTime = 0;
             ambientMusic.volume = 0.03;
             ambientMusic.play().catch(e => console.log("Ambient blocked:", e));
 
             const ts = document.getElementById('title-screen');
-            ts.style.opacity = '0';
-            setTimeout(() => {
+            if (isEditMode) {
+                // En modo edición, saltar directamente sin animación ni overlays
                 ts.style.display = 'none';
+                document.getElementById('pre-title-click').style.display = 'none';
                 document.getElementById('game-stage').style.display = 'flex';
-            }, 1000);
+            } else {
+                ts.style.opacity = '0';
+                setTimeout(() => {
+                    ts.style.display = 'none';
+                    document.getElementById('pre-title-click').style.display = 'none';
+                    document.getElementById('game-stage').style.display = 'flex';
+                }, 1000);
+            }
+        }
+
+        function showNewGameWarning() {
+            document.getElementById('modal-new-warning').style.display = 'flex';
+        }
+
+        function confirmLoad(load) {
+            if (load) {
+                loadGame();
+                startGame();
+            } else {
+                localStorage.removeItem(getSaveKey());
+                document.getElementById('modal-new-warning').style.display = 'none';
+                setTimeout(() => {
+                    startGame();
+                }, 1000);
+            }
         }
 
         function renderSprite(elementId, pngSrc, defaultSvg) {
             const el = document.getElementById(elementId);
             if (pngSrc && pngSrc.trim() !== "") {
                 const currentImg = el.querySelector('img.base-img') || el.querySelector('img');
-                // Si ya es la misma imagen (o su versión parpadeando), no recargamos
                 if (!currentImg || (currentImg.getAttribute('data-base-src') !== pngSrc && currentImg.getAttribute('src') !== pngSrc)) {
                     const talkSrc = pngSrc.replace(/\.png$/i, 'H.png');
                     el.innerHTML = `
@@ -1401,35 +2434,132 @@
         }
 
         function transitionToLevel(dir) {
+            dir = parseInt(dir) || 0;
             if (isTransitioning) return;
+
+            stopTyping();
             isTransitioning = true;
 
             const paper = document.getElementById('paper-object');
-            paper.style.opacity = "0";
-            paper.style.transform = dir > 0 ? "rotate(-5deg) translateY(50px)" : "rotate(5deg) translateY(-50px)";
-
-            setTimeout(() => {
-                currentIdx += dir;
-                loadLevel();
-                isTransitioning = false;
-            }, 600);
-        }
-        function loadLevel() {
-            if (currentIdx >= gameData.length) {
-                document.getElementById('end-screen').style.display = 'flex';
-                return;
+            if (paper) {
+                paper.style.opacity = "0";
+                paper.style.transform = dir > 0 ? "rotate(-5deg) translateY(50px)" : "rotate(5deg) translateY(-50px)";
             }
 
+            setTimeout(() => {
+                try {
+                    currentIdx += dir;
+                    if (isNaN(currentIdx)) currentIdx = 0;
+                    loadLevel();
+                } catch (e) {
+                    console.error("Error loading level:", e);
+                } finally {
+                    isTransitioning = false;
+                }
+            }, 600);
+        }
+
+        function loadLevel() {
+            const endScreen = document.getElementById('end-screen');
+            const skipNext = document.getElementById('skip-next');
+            const skipPrev = document.getElementById('skip-prev');
+            const skipResume = document.getElementById('skip-resume');
+            const skipReached = document.getElementById('skip-reached');
+            const skipSearch = document.getElementById('skip-search');
+            const skipBook = document.getElementById('skip-book');
+
+            if (currentIdx >= gameData.length) {
+                endScreen.style.display = 'flex';
+                playFanfare();
+                if (skipNext) skipNext.style.display = 'none';
+                if (skipPrev) skipPrev.style.display = 'block';
+                if (skipResume) skipResume.style.display = 'none';
+                if (skipReached) skipReached.style.display = 'none';
+                if (skipSearch) skipSearch.style.display = 'none';
+                if (skipBook) skipBook.style.display = 'none';
+
+                if (localStorage.getItem('presentationMode') === 'true') {
+                    if (window.presentationEndTimer) clearTimeout(window.presentationEndTimer);
+                    window.presentationEndTimer = setTimeout(() => {
+                        localStorage.setItem('presentationMode', 'false');
+                        document.body.classList.remove('presentation-mode-active');
+
+                        // Cambio de música directo
+                        const ambientMusic = document.getElementById('music-ambient');
+                        if (ambientMusic) {
+                            ambientMusic.pause();
+                            ambientMusic.currentTime = 0;
+                        }
+                        const titleMusic = document.getElementById('music-title');
+                        if (titleMusic) {
+                            titleMusic.volume = 0.05;
+                            titleMusic.play().catch(() => { });
+                        }
+
+                        // Retorno a pantalla de título
+                        document.getElementById('game-stage').style.display = 'none';
+                        document.getElementById('title-screen').style.display = 'flex';
+                        document.getElementById('title-screen').style.opacity = '1';
+                        document.getElementById('pre-title-click').style.display = 'none';
+
+                        // Reset de estado para el modo juego
+                        currentIdx = 0;
+                        inventory = { 'C': [], 'D': [], 'G': [], 'P': [] };
+                        maxCompletedIdx = -1;
+                        maxReachedIdx = 0;
+                        lastSavedIdx = -1;
+
+                        loadLevel();
+                        checkSaves();
+                    }, 10000);
+                }
+                return;
+            } else {
+                if (window.presentationEndTimer) {
+                    clearTimeout(window.presentationEndTimer);
+                    window.presentationEndTimer = null;
+                }
+            }
+
+            maxReachedIdx = Math.max(maxReachedIdx, currentIdx);
+            endScreen.style.display = 'none';
+            if (skipNext) skipNext.style.display = 'block';
+            if (skipPrev) skipPrev.style.display = currentIdx > 0 ? 'block' : 'none';
+
+            const targetResume = maxCompletedIdx + 1;
+            const hasResume = maxCompletedIdx !== -1 && targetResume < gameData.length && currentIdx !== targetResume;
+            if (skipResume) skipResume.style.display = hasResume ? 'block' : 'none';
+
+            const hasReached = maxReachedIdx > currentIdx && maxReachedIdx > targetResume;
+            if (skipReached) skipReached.style.display = hasReached ? 'block' : 'none';
+
+            const hasNewSave = maxReachedIdx > lastSavedIdx;
+            const skipSave = document.getElementById('skip-save');
+            if (skipSave) skipSave.style.display = (hasNewSave && localStorage.getItem('presentationMode') !== 'true') ? 'block' : 'none';
+
+            if (isEditMode) {
+                const btnDelete = document.getElementById('skip-delete');
+                if (btnDelete) btnDelete.style.display = localStorage.getItem('save_trevijano_edit') ? 'block' : 'none';
+            }
+
+            if (skipSearch) skipSearch.style.display = 'block';
+            if (skipBook) skipBook.style.display = 'block';
+
             const data = gameData[currentIdx];
+
+            ['C', 'D', 'G', 'P'].forEach(k => {
+                if (data.feedback && data.feedback[k] && !Array.isArray(data.feedback[k])) {
+                    data.feedback[k] = [{ name: "Trevijano", side: "left", text: data.feedback[k].text || "", png: data.feedback[k].png || "" }];
+                }
+            });
+
             const paper = document.getElementById('paper-object');
 
-            // Reset Logic
             dialogueIdx = 0;
             isWaitingForNextLevel = false;
             newNodeId = null;
             currentSpeakerSide = null;
 
-            // RESET ONCLICK HANDLER
             document.getElementById('btn-next').onclick = (e) => advanceDialogue(e);
 
             gameStage.classList.remove('paper-focus', 'dimmed', 'presenting-mode', 'can-toggle');
@@ -1438,29 +2568,44 @@
             document.getElementById('sprite-right').classList.remove('active');
             document.getElementById('pdf-viewer-container').style.display = 'none';
 
-            // Visibilidad de dudas
             const uiDoubts = document.getElementById('ui-doubts');
-            if (data.doubts && data.doubts.length > 0) {
-                uiDoubts.style.display = 'flex';
-            } else {
-                uiDoubts.style.display = 'none';
+            updateUiDoubts();
+
+            const btnPrev = document.getElementById('btn-prev-dialogue');
+            if (btnPrev) btnPrev.style.display = 'none';
+
+            let textHTML = data.paragraph;
+            let infoHTML = data.info;
+
+            if (isEditMode) {
+                textHTML += ` <span class="edit-icon" title="Editar Párrafo" onclick="editData(${currentIdx}, 'paragraph')">✏️</span>`;
+
+                const types = ['C', 'D', 'G', 'P'];
+                const icons = { 'C': '📜', 'D': '🛡️', 'G': '🌳', 'P': '💎' };
+                const tooltips = { 'C': 'REQUISITO', 'D': 'DESLINDE', 'G': 'GENEALOGÍA', 'P': 'PROMESA' };
+
+                let typeSelector = '<span style="margin-left:15px; font-size:1.1rem; pointer-events:auto; z-index:9000; position:relative;">';
+                types.forEach(t => {
+                    if (t === data.type) typeSelector += `<span style="display:inline-block; border:2px solid var(--trevi-gold); padding:2px 6px; margin:0 3px; cursor:default; background:rgba(197, 160, 89, 0.2); border-radius:3px; filter:none;" title="${tooltips[t]}">${icons[t]}</span>`;
+                    else typeSelector += `<span style="display:inline-block; cursor:pointer; padding:2px 6px; margin:0 3px; border:2px solid transparent; opacity:0.4; filter:grayscale(100%);" onclick="setTypeDirectly(${currentIdx}, '${t}')" title="${tooltips[t]}">${icons[t]}</span>`;
+                });
+                typeSelector += '</span>';
+                infoHTML += typeSelector;
             }
 
-            document.getElementById('paper-info').innerText = data.info;
-            document.getElementById('paper-text').innerHTML = data.paragraph;
+            document.getElementById('paper-text').innerHTML = textHTML;
+            document.getElementById('paper-info').innerHTML = infoHTML;
 
-            if (data.raw_length > 1000) {
-                paper.classList.add('wider');
-            } else {
-                paper.classList.remove('wider');
-            }
+            paper.classList.toggle('wider', (data.raw_length || data.paragraph.length) > 1000);
+            paper.classList.toggle('is-summary', data.isSummary === true);
 
+            paper.style.animation = "none";
+            paper.style.display = "block";
             paper.style.opacity = "1";
             paper.style.transform = "rotate(-1deg) translateY(0)";
 
             document.getElementById('btn-start-analysis').style.display = 'block';
         }
-
 
         function advanceDialogue(event) {
             if (event) event.stopPropagation();
@@ -1475,6 +2620,7 @@
             }
 
             if (dialogueIdx < data.dialogues.length) {
+                currentTalkContext = { type: 'dialogues', subIdx: dialogueIdx };
                 gameStage.classList.add('can-toggle');
                 showDialogue(data.dialogues[dialogueIdx]);
                 dialogueIdx++;
@@ -1485,24 +2631,31 @@
                 document.getElementById('sprite-right').classList.remove('active');
                 gameStage.classList.add('can-toggle');
 
-                if (localStorage.getItem('presentationMode') === 'true') {
+                if (isPresentationMode) {
                     triggerSynthesis();
                 } else {
                     document.getElementById('choice-modal').style.display = 'flex';
+                    document.body.classList.add('modal-open');
+                    if (isEditMode) document.getElementById('btn-choice-close').style.display = 'block';
                 }
             }
         }
 
         function showDialogue(d) {
+            if (!d) return;
             const spriteLeft = document.getElementById('sprite-left');
             const spriteRight = document.getElementById('sprite-right');
             const bubble = document.getElementById('bubble-main');
-
             const isNewSpeaker = (currentSpeakerSide !== d.side);
 
-            if (isNewSpeaker) {
+            const delay = (isNewSpeaker && !isEditMode) ? 400 : 0;
+
+            if (isNewSpeaker && !isEditMode) {
                 bubble.classList.remove('active');
                 document.getElementById('btn-next').style.display = 'none';
+            } else if (isEditMode) {
+                // En modo edición, forzar el globo visible de inmediato
+                bubble.classList.add('active');
             }
 
             spriteLeft.classList.toggle('active', d.side === 'left');
@@ -1511,55 +2664,68 @@
             let pngSrcLeft = d.png;
             let pngSrcRight = d.png;
 
-            if (d.side === 'left' && d.name === 'Trevijano') {
-                pngSrcLeft = d.png || "Trevijano.png";
-            }
-            if (d.side === 'right' && d.name === 'Trevijano') {
-                pngSrcRight = d.png || "Trevijano.png";
-            }
+            if (d.side === 'left' && d.name === 'Trevijano') pngSrcLeft = d.png || "Trevijano.png";
+            if (d.side === 'right' && d.name === 'Trevijano') pngSrcRight = d.png || "Trevijano.png";
 
             if (d.side === 'left') renderSprite('sprite-left', pngSrcLeft, defaultSVG_Left);
             if (d.side === 'right') renderSprite('sprite-right', pngSrcRight, defaultSVG_Right);
 
-            // Si es una presentación PDF independiente (Array de archivos o PNGs)
             if (d.presentation) {
                 currentPresFiles = d.presentation;
                 presPageIdx = 0;
-                currentSpeakerSide = null; // Reseteamos porque ocultamos el bocadillo
+                currentSpeakerSide = null;
                 bubble.classList.remove('active');
-
                 document.getElementById('sprite-left').classList.remove('presenter');
                 document.getElementById('sprite-right').classList.remove('presenter');
                 document.getElementById(`sprite-${d.side}`).classList.add('presenter');
-
                 gameStage.classList.add('presenting-mode');
                 document.getElementById('pdf-viewer-container').style.display = 'flex';
                 document.getElementById('pdf-viewer-container').style.opacity = '1';
+
+                if (isEditMode) {
+                    const btnPrev = document.getElementById('btn-prev-dialogue');
+                    btnPrev.style.display = 'block';
+                    btnPrev.style.zIndex = '900';
+                }
+
                 loadPdfPage();
                 return;
             }
 
-            currentSpeakerSide = d.side;
+            if (isEditMode) {
+                const btnPrev = document.getElementById('btn-prev-dialogue');
+                if (currentTalkContext) {
+                    if (currentTalkContext.type === 'dialogues' && currentTalkContext.subIdx > 0) {
+                        btnPrev.style.display = 'block';
+                    } else if (currentTalkContext.type === 'feedback') {
+                        btnPrev.style.display = 'block';
+                    } else {
+                        btnPrev.style.display = 'none';
+                    }
+                } else {
+                    btnPrev.style.display = 'none';
+                }
+            }
 
-            // Retardo para que el mensaje aparezca "unas décimas después" del personaje
+            currentSpeakerSide = d.side;
             setTimeout(() => {
                 const nameEl = document.getElementById('speaker-name');
                 bubble.className = d.side === 'left' ? 'bubble arrow-left active' : 'bubble arrow-right active';
-
-                nameEl.innerText = d.name;
+                let nameHTML = d.name || "Trevijano";
+                if (isEditMode) {
+                    nameHTML += ` <span class="edit-icon" onclick="event.stopPropagation(); editData(${currentIdx}, '${currentTalkContext.type}', '${currentTalkContext.subIdx}', 'name', ${currentTalkContext.fIdx || 0})">✏️</span> <span class="edit-icon" onclick="event.stopPropagation(); selectImage('${currentTalkContext.type}', '${currentTalkContext.subIdx}', ${currentTalkContext.fIdx || 0})">🖼️</span>`;
+                }
+                nameEl.innerHTML = nameHTML;
                 nameEl.style.left = d.side === 'left' ? '20px' : 'auto';
                 nameEl.style.right = d.side === 'right' ? '20px' : 'auto';
                 nameEl.style.backgroundColor = d.side === 'left' ? 'var(--trevi-red)' : 'var(--opp-color)';
-
                 typeText(d.text);
-            }, isNewSpeaker ? 600 : 50);
+            }, delay);
         }
 
-        // PDF Presentation Logic Array Minimalista con soporte PNG
         function loadPdfPage() {
             if (!currentPresFiles || currentPresFiles.length === 0) return;
             const file = currentPresFiles[presPageIdx];
-
             const iframe = document.getElementById('pdf-iframe');
             const img = document.getElementById('pdf-img');
 
@@ -1572,49 +2738,69 @@
                 iframe.style.display = 'block';
                 iframe.src = `${file}#view=Fit&toolbar=0&navpanes=0&scrollbar=0`;
             }
+            document.getElementById('pdf-btn-prev').style.display = (presPageIdx === 0 && !isEditMode) ? 'none' : 'flex';
+            document.getElementById('pdf-btn-next').innerHTML = (presPageIdx === currentPresFiles.length - 1) ? '✖' : '❯';
+            document.getElementById('pdf-btn-next').className = (presPageIdx === currentPresFiles.length - 1) ? 'pdf-arrow close-btn' : 'pdf-arrow';
 
-            const btnPrev = document.getElementById('pdf-btn-prev');
-            const btnNext = document.getElementById('pdf-btn-next');
+            if (isEditMode) {
+                let editBox = document.getElementById('pres-edit-box');
+                if (!editBox) {
+                    editBox = document.createElement('div');
+                    editBox.id = 'pres-edit-box';
+                    editBox.style.cssText = 'position:absolute; bottom:20px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); padding:10px; border:1px solid var(--trevi-gold); z-index:500; display:flex; gap:15px; border-radius:5px; pointer-events:auto;';
+                    document.getElementById('pdf-viewer-container').appendChild(editBox);
+                }
+                const cType = currentTalkContext ? currentTalkContext.type : 'dialogues';
+                const cSubIdx = currentTalkContext ? currentTalkContext.subIdx : 0;
+                const fIdx = currentTalkContext ? currentTalkContext.fIdx : 0;
 
-            btnPrev.style.display = (presPageIdx === 0) ? 'none' : 'flex';
-
-            if (presPageIdx === currentPresFiles.length - 1) {
-                btnNext.innerHTML = '✖';
-                btnNext.className = 'pdf-arrow close-btn';
-            } else {
-                btnNext.innerHTML = '❯';
-                btnNext.className = 'pdf-arrow';
+                editBox.innerHTML = `
+                    <span class="edit-icon" style="color:#2196F3; opacity:1;" onclick="event.stopPropagation(); addPresFile(${currentIdx}, '${cType}', '${cSubIdx}', ${fIdx})">➕ AÑADIR ARCHIVO</span>
+                    ${currentPresFiles.length > 1 ? `<span class="edit-icon" style="color:#f44336; opacity:1;" onclick="event.stopPropagation(); deletePresFile(${currentIdx}, '${cType}', '${cSubIdx}', ${fIdx}, ${presPageIdx})">🗑️ ELIMINAR ACTUAL</span>` : ''}
+                    <span class="edit-icon" style="color:#ff9800; opacity:1;" onclick="event.stopPropagation(); deletePresentation(${currentIdx}, '${cType}', '${cSubIdx}', ${fIdx})">🗑️ ELIMINAR PRESENTACIÓN</span>
+                `;
             }
         }
 
         function changePdfPage(dir) {
+            if (isEditMode && presPageIdx === 0 && dir === -1) { retreatDialogue(null); return; }
             presPageIdx += dir;
             loadPdfPage();
         }
 
         function handlePdfNext() {
             if (presPageIdx === currentPresFiles.length - 1) {
-                // Animación suave de salida antes de reanudar el diálogo
                 const pdfContainer = document.getElementById('pdf-viewer-container');
                 pdfContainer.style.opacity = '0';
-                currentSpeakerSide = null; // Fuerza a que vuelva a aparecer el personaje y el globo con delay
+                currentSpeakerSide = null;
                 setTimeout(() => {
                     pdfContainer.style.display = 'none';
                     gameStage.classList.remove('presenting-mode');
-                    setTimeout(() => advanceDialogue(), 300); // Pausa dramática ligera antes de que el personaje hable
+                    setTimeout(() => advanceDialogue(), 300);
                 }, 300);
             } else {
                 changePdfPage(1);
             }
         }
 
+        function stopTyping() {
+            if (typingTimeout) { clearTimeout(typingTimeout); typingTimeout = null; }
+            if (talkInterval) { clearInterval(talkInterval); talkInterval = null; }
+            isTyping = false;
+            const sprites = document.querySelectorAll('.char-sprite');
+            sprites.forEach(s => {
+                const talkImg = s.querySelector('.talk-img');
+                if (talkImg) talkImg.style.opacity = '0';
+            });
+        }
+
         function typeText(text) {
+            stopTyping();
             isTyping = true;
             const el = document.getElementById('bubble-text');
             el.innerHTML = "";
             let i = 0;
 
-            if (talkInterval) clearInterval(talkInterval);
             const activeSpeaker = document.getElementById(`sprite-${currentSpeakerSide}`);
             const talkImg = activeSpeaker ? activeSpeaker.querySelector('.talk-img') : null;
 
@@ -1625,15 +2811,49 @@
             }
 
             function write() {
+                if (i === 0 && isEditMode) {
+                    const cType = currentTalkContext ? currentTalkContext.type : 'dialogues';
+                    const isDiag = cType === 'dialogues';
+                    const isFB = cType === 'feedback';
+                    const cSubIdx = currentTalkContext ? currentTalkContext.subIdx : 0;
+                    const fIdx = currentTalkContext ? currentTalkContext.fIdx : 0;
+
+                    let targetArr = isDiag ? gameData[currentIdx].dialogues : (isFB ? gameData[currentIdx].feedback[cSubIdx] : []);
+                    const hasMultiple = targetArr && targetArr.length > 1;
+
+                    let delHtml = '';
+                    let addHtml = '';
+                    let sideHtml = '';
+                    let presHtml = '';
+                    if (isDiag || isFB) {
+                        if (hasMultiple) delHtml = `<span class="edit-icon" style="color:#f44336;" onclick="event.stopPropagation(); deleteData(${currentIdx}, '${cType}', '${cSubIdx}', ${fIdx})">🗑️ ELIMINAR</span>`;
+                        addHtml = `<span class="edit-icon" style="color:#4CAF50;" onclick="event.stopPropagation(); addDialogue(${currentIdx}, '${cType}', '${cSubIdx}', ${fIdx})">➕ MENSAJE</span>`;
+                        presHtml = `<span class="edit-icon" style="color:#ff9800;" onclick="event.stopPropagation(); addPresentation(${currentIdx}, '${cType}', '${cSubIdx}', ${fIdx})">➕ DIAP.</span>`;
+                        sideHtml = `<span class="edit-icon" style="color:#2196F3;" onclick="event.stopPropagation(); toggleDialogueSide(${currentIdx}, '${cType}', '${cSubIdx}', ${fIdx})">🔄 LADO</span>`;
+                    }
+
+                    const extraHtml = `<div style="margin-top:15px; font-size:0.9rem; opacity:0.8; pointer-events:auto; z-index:1000; position:relative; display:flex; flex-wrap:wrap; gap:10px;">
+                        <span class="edit-icon" onclick="event.stopPropagation(); editData(${currentIdx}, '${cType}', '${cSubIdx}', 'text', ${fIdx})">✏️ EDITAR TEXTO</span> 
+                        ${sideHtml}
+                        ${addHtml}
+                        ${presHtml}
+                        ${delHtml}
+                    </div>`;
+                    el.innerHTML = text + extraHtml;
+                    if (talkImg) talkImg.style.opacity = '0';
+                    document.getElementById('btn-next').style.display = 'block';
+                    if (talkInterval) { clearInterval(talkInterval); talkInterval = null; }
+                    isTyping = false;
+                    return;
+                }
+
                 if (i < text.length) {
                     el.appendChild(document.createTextNode(text[i]));
-                    playTick(); i++; setTimeout(write, 25);
+                    playTick(); i++;
+                    typingTimeout = setTimeout(write, 25);
                 } else {
                     isTyping = false;
-                    if (talkInterval) {
-                        clearInterval(talkInterval);
-                        talkInterval = null;
-                    }
+                    if (talkInterval) { clearInterval(talkInterval); talkInterval = null; }
                     if (talkImg) talkImg.style.opacity = '0';
                     document.getElementById('btn-next').style.display = 'block';
                 }
@@ -1641,18 +2861,38 @@
             write();
         }
 
+        let feedbackIdx = 0;
+        let feedbackType = null;
+
         function submitChoice(t) {
-            const data = gameData[currentIdx];
+            if (isPresentationMode) return;
             document.getElementById('choice-modal').style.display = 'none';
-            currentSpeakerSide = null; // Fuerza animación de entrada para Trevijano
+            document.body.classList.remove('modal-open');
+            currentSpeakerSide = null;
+            feedbackType = t;
+            feedbackIdx = 0;
 
-            const fb = data.feedback[t];
-            const isCorrect = (t === data.type);
+            const data = gameData[currentIdx];
+            if (t === data.type) playCorrect();
+            else playWrong();
 
-            showDialogue({ name: "Trevijano", side: "left", text: fb.text, png: fb.png });
+            advanceFeedback();
+        }
 
-            document.getElementById('btn-next').onclick = (e) => {
-                e.stopPropagation();
+        function advanceFeedback(event) {
+            if (event) event.stopPropagation();
+            if (isTyping) return;
+            const data = gameData[currentIdx];
+            const fbArray = data.feedback[feedbackType];
+            const isCorrect = (feedbackType === data.type);
+
+            if (feedbackIdx < fbArray.length) {
+                currentTalkContext = { type: 'feedback', subIdx: feedbackType, fIdx: feedbackIdx };
+                gameStage.classList.add('can-toggle');
+                showDialogue(fbArray[feedbackIdx]);
+                feedbackIdx++;
+                document.getElementById('btn-next').onclick = (e) => advanceFeedback(e);
+            } else {
                 document.getElementById('btn-next').onclick = () => transitionToLevel(1);
                 if (isCorrect) {
                     triggerSynthesis();
@@ -1660,58 +2900,260 @@
                     document.getElementById('bubble-main').classList.remove('active');
                     document.getElementById('choice-modal').style.display = 'flex';
                 }
-            };
+            }
         }
 
         function triggerSynthesis() {
+            const data = gameData[currentIdx];
+            if (!inventory[data.type].some(n => n.id === data.id)) {
+                inventory[data.type].push(data);
+            }
+            maxCompletedIdx = Math.max(maxCompletedIdx, currentIdx);
+
+            if (isEditMode) {
+                sessionNewNodes.add(data.id);
+                isWaitingForNextLevel = true;
+                toggleModal('nodes');
+                setTab(data.type);
+                return;
+            }
+
             currentSpeakerSide = null;
             gameStage.classList.remove('can-toggle');
+            gameStage.classList.remove('dimmed');
             document.getElementById('bubble-main').classList.remove('active');
             document.getElementById('sprite-left').classList.remove('active');
             document.getElementById('sprite-right').classList.remove('active');
 
-            const data = gameData[currentIdx];
+            const paper = document.getElementById('paper-object');
             const flier = document.getElementById('flying-synthesis');
             const icons = { 'C': '📜', 'D': '🛡️', 'G': '🌳', 'P': '💎' };
 
             document.getElementById('fly-title').innerText = `${icons[data.type]} #${data.id}`;
             document.getElementById('fly-text').innerText = data.synthesis;
-            flier.style.display = 'block';
-            flier.style.animation = 'popAndHold 2s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            flier.classList.toggle('is-summary', data.isSummary === true);
 
-            inventory[data.type].push(data);
-            newNodeId = data.id;
+            flier.style.display = 'block';
+            flier.style.visibility = 'hidden';
+            flier.style.opacity = '0';
+            flier.style.transform = 'translate(-50%, -50%) scale(1)';
+
+            const rectCard = flier.getBoundingClientRect();
+            const rectPaper = paper.getBoundingClientRect();
+
+            flier.style.display = 'none';
+            flier.style.visibility = 'visible';
+
+            const targetScaleX = rectCard.width / rectPaper.width;
+            const targetScaleY = rectCard.height / rectPaper.height;
+            const stage1Scale = Math.max(targetScaleX, targetScaleY);
+
+            paper.style.transition = 'none';
+            paper.style.transformOrigin = 'center center';
 
             setTimeout(() => {
-                flier.style.animation = 'flyToMenu 1.5s forwards ease-in';
-                setTimeout(() => {
-                    flier.style.display = 'none';
-                    isWaitingForNextLevel = true;
+                const paperAnim = paper.animate([
+                    { transform: 'rotate(-1deg) scale(1)', opacity: 1 },
+                    { transform: `rotate(0deg) scale(${stage1Scale})`, opacity: 1, offset: 0.6 },
+                    { transform: `rotate(0deg) scale(${targetScaleX}, ${targetScaleY})`, opacity: 1 }
+                ], {
+                    duration: 400,
+                    easing: 'ease-in'
+                });
 
-                    playThud();
+                paperAnim.onfinish = () => {
+                    flier.style.display = 'block';
+                    flier.style.animation = 'none';
+                    flier.style.opacity = '1';
+                    flier.style.transform = 'translate(-50%, -50%) scale(1)';
+                    paper.style.display = 'none';
+                    paper.style.transform = 'rotate(-1deg) scale(1)';
 
-                    toggleModal('nodes');
-                    setTab(data.type);
-                }, 1400);
-            }, 3500);
+                    playPing();
+                    sessionNewNodes.add(data.id);
+
+                    setTimeout(() => {
+                        flier.style.animation = 'flyToMenu 1.0s forwards ease-in';
+                        setTimeout(() => {
+                            flier.style.display = 'none';
+                            isWaitingForNextLevel = true;
+                            playThud();
+                            if (document.getElementById('modal-nodes').style.display !== 'flex') {
+                                toggleModal('nodes');
+                            }
+                            setTab(data.type);
+                            renderNodes();
+                        }, 900);
+                    }, 250);
+                };
+            }, 400);
+        }
+
+        function resumeProgress() {
+            if (maxCompletedIdx === -1) return;
+            const target = maxCompletedIdx + 1;
+            if (target < gameData.length) jumpToIdx(target, false);
+        }
+
+        function goToReached() {
+            if (maxReachedIdx > currentIdx) jumpToIdx(maxReachedIdx, false);
+        }
+
+        function requestJump(idx) {
+            jumpToIdx(idx, true);
+        }
+
+        function jumpToIdx(idx, showConfirm) {
+            idx = parseInt(idx);
+            if (showConfirm) {
+                jumpTargetIdx = idx;
+                const modal = document.getElementById('modal-confirm');
+                const title = modal.querySelector('h2');
+                title.innerText = (idx <= maxCompletedIdx) ? "¿REPETIR ANÁLISIS?" : "¿VIAJAR A ESTE PÁRRAFO?";
+                modal.style.display = 'flex';
+            } else {
+                executeJumpActual(idx);
+            }
+        }
+
+        function executeJump() {
+            if (jumpTargetIdx === null) return;
+            executeJumpActual(jumpTargetIdx);
+            jumpTargetIdx = null;
+        }
+
+        function executeJumpActual(idx) {
+            idx = parseInt(idx);
+            if (isNaN(idx)) return;
+            const diff = idx - currentIdx;
+            isTransitioning = false;
+            document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
+            document.body.classList.remove('modal-open');
+            transitionToLevel(diff);
         }
 
         function toggleModal(m) {
             const modal = document.getElementById(`modal-${m}`);
             if (modal.style.display === 'flex') {
                 modal.style.display = 'none';
-                if (m === 'nodes' && isWaitingForNextLevel) {
-                    transitionToLevel(1);
+                document.body.classList.remove('modal-open');
+                if (m === 'nodes') {
+                    sessionNewNodes.clear();
+                    if (isWaitingForNextLevel) { isWaitingForNextLevel = false; transitionToLevel(1); }
                 }
             } else {
+                // Bloquear apertura si el modal de elección está activo
+                if (document.getElementById('choice-modal').style.display === 'flex') return;
+
                 modal.style.display = 'flex';
+                document.body.classList.add('modal-open');
                 if (m === 'nodes') renderNodes();
                 if (m === 'doubts') renderDoubts();
+                if (m === 'search') renderSearch();
+                if (m === 'book') renderBook();
             }
         }
 
-        function setTab(t) {
+        function jumpToPagePct(e) {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const pct = (e.clientX - rect.left) / rect.width;
+            currentBookPage = Math.floor(pct * pagesMap.length);
+            if (currentBookPage < 0) currentBookPage = 0;
+            if (currentBookPage >= pagesMap.length) currentBookPage = pagesMap.length - 1;
+            renderBook();
+        }
+
+        function saveGame() {
+            const saveData = {
+                currentIdx,
+                maxCompletedIdx,
+                maxReachedIdx,
+                currentBookPage,
+                inventory,
+                scrolls: {
+                    nodes: document.getElementById('node-list-scroll') ? document.getElementById('node-list-scroll').scrollTop : 0,
+                    search: document.getElementById('search-list') ? document.getElementById('search-list').scrollTop : 0,
+                    book: document.getElementById('book-container') ? document.getElementById('book-container').scrollTop : 0
+                }
+            };
+            localStorage.setItem(getSaveKey(), JSON.stringify(saveData));
+            lastSavedIdx = maxReachedIdx;
+            loadLevel();
+            playTick();
+        }
+
+        function loadGame() {
+            const raw = localStorage.getItem(getSaveKey());
+            if (!raw) return;
+            const data = JSON.parse(raw);
+            currentIdx = data.currentIdx;
+            maxCompletedIdx = data.maxCompletedIdx;
+            maxReachedIdx = data.maxReachedIdx;
+            lastSavedIdx = maxReachedIdx;
+            currentBookPage = data.currentBookPage || 0;
+            inventory = data.inventory;
+            loadLevel();
+
+            setTimeout(() => {
+                if (data.scrolls) {
+                    if (document.getElementById('node-list-scroll')) document.getElementById('node-list-scroll').scrollTop = data.scrolls.nodes;
+                    if (document.getElementById('search-list')) document.getElementById('search-list').scrollTop = data.scrolls.search;
+                    if (document.getElementById('book-container')) document.getElementById('book-container').scrollTop = data.scrolls.book;
+                }
+            }, 100);
+        }
+
+        function renderSearch() {
+            const list = document.getElementById('search-list');
+            list.innerHTML = "";
+            gameData.forEach((d, i) => {
+                const item = document.createElement('div');
+                item.className = 'search-paper' + (d.isSummary ? ' is-summary' : '');
+                const snippet = d.paragraph.replace(/<[^>]*>/g, '').substring(0, 150) + " [...]";
+                item.innerHTML = `<div class="search-info">${d.info}</div><div class="search-snippet">${snippet}</div>${isAnalyzed(d) ? '<div class="badge-analyzed">ANALIZADO</div>' : ''}`;
+                item.onclick = () => jumpToIdx(i, false);
+                list.appendChild(item);
+            });
+        }
+
+        function renderBook() {
+            const container = document.getElementById('book-container');
+            container.innerHTML = "";
+            const pageData = pagesMap[currentBookPage];
+            const totalPages = pagesMap.length;
+
+            document.getElementById('book-page-title').innerText = `PÁGINA ${pageData.num} DE ${pagesMap[totalPages - 1].num}`;
+
+            // Calcular porcentaje real basado en el índice de páginas
+            const pct = Math.round(((currentBookPage + 1) / totalPages) * 100);
+            document.getElementById('book-progress-fill').style.width = `${pct}%`;
+
+            pageData.indices.forEach(idx => {
+                const d = gameData[idx];
+                if (d.isSummary) return;
+                const paper = document.createElement('div');
+                paper.className = 'book-paper-mini' + (d.isSummary ? ' is-summary' : '');
+                paper.innerHTML = `
+                    <div style="font-size:0.7rem; color:#888; margin-bottom:10px;">${d.info}</div>
+                    <div>${d.paragraph}</div>
+                    ${isAnalyzed(d) ? '<div class="badge-analyzed">ANALIZADO</div>' : ''}
+                `;
+                paper.onclick = () => requestJump(idx);
+                container.appendChild(paper);
+            });
+        }
+
+        function changeBookPage(dir) {
+            const newPage = currentBookPage + dir;
+            if (newPage >= 0 && newPage < pagesMap.length) {
+                currentBookPage = newPage;
+                renderBook();
+            }
+        }
+
+        function setTab(t, clearNew = false) {
             currentTab = t;
+            if (clearNew) sessionNewNodes.clear();
             const types = ['C', 'D', 'G', 'P'];
             document.querySelectorAll('.tab-icon').forEach((ic, i) => ic.classList.toggle('active', types[i] === t));
             renderNodes();
@@ -1721,10 +3163,21 @@
             const list = document.getElementById('node-list');
             list.innerHTML = "";
             inventory[currentTab].forEach(n => {
+                const gIdx = gameData.findIndex(gd => String(gd.id) === String(n.id) && gd.type === n.type);
                 const card = document.createElement('div');
-                card.className = 'idea-card';
-                if (n.id === newNodeId) card.classList.add('new-node-anim');
-                card.innerHTML = `<div class="idea-card-title">#${n.id}</div><div class="idea-card-text">${n.synthesis}</div>`;
+                card.className = 'idea-card' + (n.isSummary ? ' is-summary' : '');
+
+                // Comparación robusta de IDs (string/number)
+                const isNew = Array.from(sessionNewNodes).some(id => String(id) === String(n.id));
+                if (isNew) card.classList.add('new-node-anim');
+                card.innerHTML = `
+                    <div class="idea-card-title">#${n.id}</div>
+                    <div class="idea-card-text">
+                        ${n.synthesis}
+                        ${isEditMode && gIdx !== -1 ? `<span class="edit-icon" onclick="event.stopPropagation(); editData(${gIdx}, 'synthesis')">✏️</span>` : ''}
+                    </div>
+                `;
+                if (gIdx !== -1) card.onclick = () => requestJump(gIdx);
                 list.appendChild(card);
             });
 
@@ -1738,22 +3191,57 @@
             const list = document.getElementById('doubts-list');
             list.innerHTML = "";
             const doubts = gameData[currentIdx].doubts || [];
-            doubts.forEach(d => {
+            doubts.forEach((d, i) => {
                 const card = document.createElement('div');
                 card.className = 'idea-card'; card.style.borderLeftColor = 'orange'; card.style.marginBottom = '20px';
-                card.innerHTML = `<div class="idea-card-text">${d}</div>`;
+                card.innerHTML = `
+                    <div class="idea-card-text">
+                        ${d}
+                        ${isEditMode ? `<br><br><span class="edit-icon" onclick="event.stopPropagation(); editData(${currentIdx}, 'doubts', ${i})">✏️ EDITAR</span> <span class="edit-icon" style="color:#f44336;" onclick="event.stopPropagation(); deleteData(${currentIdx}, 'doubts', ${i})">🗑️ ELIMINAR</span>` : ''}
+                    </div>
+                `;
                 list.appendChild(card);
             });
+            if (isEditMode) {
+                const addBtn = document.createElement('button');
+                addBtn.className = 'btn-confirm yes';
+                addBtn.style.marginTop = '10px';
+                addBtn.style.background = 'var(--trevi-gold)';
+                addBtn.style.color = 'black';
+                addBtn.innerText = '➕ AÑADIR DUDA';
+                addBtn.onclick = async () => {
+                    if (!gameData[currentIdx].doubts) gameData[currentIdx].doubts = [];
+                    gameData[currentIdx].doubts.push("...");
+                    await saveGameDataToFile();
+                    renderDoubts();
+                    updateUiDoubts();
+                };
+                list.appendChild(addBtn);
+            }
+        }
+
+        function updateUiDoubts() {
+            // No mostrar dudas si el modal de elección está abierto
+            if (document.getElementById('choice-modal').style.display === 'flex') {
+                document.getElementById('ui-doubts').style.display = 'none';
+                return;
+            }
+
+            const doubts = gameData[currentIdx].doubts || [];
+            const uiDoubts = document.getElementById('ui-doubts');
+            if (doubts.length > 0) {
+                uiDoubts.innerText = "?";
+                uiDoubts.style.display = 'flex';
+            } else {
+                uiDoubts.innerText = isEditMode ? "+" : "";
+                uiDoubts.style.display = isEditMode ? 'flex' : 'none';
+            }
         }
 
         function skipToNextLevel() {
-            if (currentIdx >= gameData.length - 1 || isTransitioning) return;
+            if (currentIdx >= gameData.length || isTransitioning) return;
             const data = gameData[currentIdx];
-            if (localStorage.getItem('presentationMode') !== 'true') {
-                if (!inventory[data.type].some(n => n.id === data.id)) {
-                    inventory[data.type].push(data);
-                }
-            }
+            // No añadimos ficha al saltar, solo actualizamos el máximo alcanzado
             transitionToLevel(1);
         }
 
